@@ -1,0 +1,567 @@
+<title>길찾기 미션</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: a toy-town board game. Sky page, grass board, chunky sticker buttons. One deliberate bright world (single theme). */
+:root{
+  color-scheme: light;
+  --sky:#DDF1FF; --sky2:#C3E6FF;
+  --ink:#24324A; --ink2:#5A6782;
+  --paper:#FFFFFF; --cream:#FFF7EC;
+  --coral:#FF6960; --coral-d:#E2463D; --coral-t:#FFE3DF;
+  --sun:#FFC83D; --sun-d:#E0A400;
+  --grass:#A8DB7E; --grass2:#93CF66; --grass-edge:#7DBB52;
+  --road:#D8D4CC; --road-edge:#C2BDB3;
+  --ok:#2EA36B; --ok-t:#DDF5E8;
+  --line:#E3E9F2;
+  --display:"Jua","Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+html,body{height:100%}
+body{background:var(--sky);color:var(--ink);font-family:var(--body);font-size:16px;
+  background-image:radial-gradient(circle at 12% 8%,#fff 0 38px,transparent 39px),radial-gradient(circle at 18% 9%,#fff 0 28px,transparent 29px),
+  radial-gradient(circle at 86% 14%,#fff 0 30px,transparent 31px),radial-gradient(circle at 91% 13%,#fff 0 22px,transparent 23px);
+  background-repeat:no-repeat;}
+.app{max-width:780px;margin:0 auto;padding-block:14px 28px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
+button{font-family:var(--display);color:var(--ink);cursor:pointer;border:0;background:none;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+svg{width:1em;height:1em;display:block}
+
+/* ---------- top bar ---------- */
+.bar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.round{width:52px;height:52px;border-radius:50%;background:var(--paper);display:grid;place-items:center;font-size:22px;
+  box-shadow:0 4px 0 var(--sky2);flex:none}
+.round:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sky2)}
+.bar .ttl{flex:1;min-width:0;font-family:var(--display);font-size:22px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.steps{display:flex;gap:6px;justify-content:center;margin:-2px 0 12px;flex-wrap:wrap}
+.steps span{font-family:var(--display);font-size:13px;padding:5px 10px;border-radius:99px;background:rgba(255,255,255,.6);color:var(--ink2)}
+.steps span.on{background:var(--coral);color:#fff}
+.steps span.done{background:var(--ok-t);color:var(--ok)}
+
+/* ---------- home ---------- */
+.hero{text-align:center;padding:18px 0 6px}
+.hero .kicker{display:inline-flex;gap:8px;align-items:center;font-family:var(--display);background:var(--paper);padding:6px 14px;border-radius:99px;font-size:15px;color:var(--coral);box-shadow:0 3px 0 var(--sky2)}
+.hero h1{font-family:var(--display);font-weight:400;font-size:clamp(46px,12vw,78px);line-height:1.05;margin:14px 0 4px;color:var(--coral);
+  text-shadow:0 4px 0 #fff,0 8px 0 rgba(36,50,74,.12);letter-spacing:.02em;text-wrap:balance}
+.hero p{margin:6px auto 0;max-width:30em;color:var(--ink2);font-size:17px}
+.trail{position:relative;margin:22px auto 0;display:grid;gap:14px}
+.lv{position:relative;display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--paper);border-radius:24px;padding:14px 16px;
+  box-shadow:0 6px 0 var(--sky2);transition:transform .12s}
+.lv:hover{transform:translateY(-2px)}
+.lv:active{transform:translateY(4px);box-shadow:0 2px 0 var(--sky2)}
+.lv .num{width:64px;height:64px;flex:none;border-radius:20px;display:grid;place-items:center;font-family:var(--display);font-size:26px;color:#fff}
+.lv .meta{flex:1;min-width:0}
+.lv .name{font-family:var(--display);font-size:24px}
+.lv .desc{color:var(--ink2);font-size:15px;margin-top:2px}
+.lv .stars{display:flex;gap:2px;font-size:22px;color:#E6E1D6}
+.lv .stars .got{color:var(--sun)}
+.lv .go{font-size:20px;color:var(--ink2)}
+.diff{display:inline-flex;gap:3px;margin-left:6px;vertical-align:2px}
+.diff i{width:9px;height:9px;border-radius:50%;background:#E6E1D6;display:block}
+.diff i.f{background:var(--coral)}
+.foot{margin-top:18px;text-align:center;color:var(--ink2);font-size:14px}
+
+/* ---------- mission card ---------- */
+.mission{display:flex;gap:12px;align-items:center;background:var(--paper);border-radius:22px;padding:12px 14px;box-shadow:0 5px 0 var(--sky2);margin-bottom:14px}
+.mission .say{width:48px;height:48px;border-radius:50%;background:var(--coral-t);color:var(--coral);display:grid;place-items:center;font-size:22px;flex:none}
+.mission .txt{flex:1;min-width:0;font-family:var(--display);font-size:20px;line-height:1.35}
+.mission .txt b{font-weight:400}
+.guide{display:flex;gap:10px;align-items:flex-start;margin:-4px 0 14px}
+.guide .face{width:46px;height:46px;flex:none;border-radius:50%;background:var(--sun);display:grid;place-items:center;font-size:22px;color:#fff;box-shadow:0 3px 0 var(--sun-d)}
+.guide .bub{position:relative;background:var(--cream);border:2px solid #FFE2B8;border-radius:18px;padding:9px 13px;font-size:16px;line-height:1.45}
+
+/* ---------- choose cards ---------- */
+.q{font-family:var(--display);font-size:26px;text-align:center;margin:6px 0 2px}
+.qsub{text-align:center;color:var(--ink2);margin-bottom:14px}
+.qsub b{font-family:var(--display);font-weight:400;padding:2px 10px;border-radius:99px;color:#fff}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.pc{background:var(--paper);border-radius:22px;padding:16px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 6px 0 var(--sky2);
+  font-size:22px;transition:transform .12s}
+.pc:active{transform:translateY(4px);box-shadow:0 2px 0 var(--sky2)}
+.pc .ic{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:36px}
+.pc.hint{animation:pulse 1.1s ease-in-out infinite}
+.pc.right{background:var(--ok-t);box-shadow:0 6px 0 #B9E6CD}
+.pc.used{opacity:.35;pointer-events:none}
+.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@keyframes pulse{50%{transform:scale(1.05);box-shadow:0 6px 0 var(--sky2),0 0 0 8px rgba(255,200,61,.55)}}
+
+/* ---------- map ---------- */
+.mapwrap{background:var(--grass-edge);border-radius:26px;padding:8px;box-shadow:0 7px 0 #5F9A3C}
+.map{position:relative;display:grid;border-radius:20px;overflow:hidden;background:var(--grass);
+  background-image:radial-gradient(var(--grass2) 1.5px,transparent 1.6px);background-size:14px 14px;touch-action:manipulation}
+.t{position:relative;aspect-ratio:1}
+.t.r{background:var(--road)}
+.t.r::after{content:"";position:absolute;inset:0;border:0 solid var(--road-edge)}
+.t.c{background:repeating-linear-gradient(90deg,#fff 0 14%,var(--road) 14% 25%)}
+.t.x{background:repeating-linear-gradient(45deg,#FFB547 0 10px,#fff 10px 20px)}
+.t.x .cone{position:absolute;inset:18%;color:#C2410C;display:grid;place-items:center;font-size:clamp(16px,4vw,28px)}
+.t.b{display:flex;justify-content:center;align-items:flex-start}
+.bld{width:60%;height:60%;margin-top:3%;border-radius:28%;display:grid;place-items:center;color:#fff;font-size:clamp(13px,3.6vw,26px);box-shadow:0 3px 0 rgba(0,0,0,.18);position:relative}
+.tag{position:absolute;left:50%;top:100%;line-height:1.25;transform:translateX(-50%);background:#fff;color:var(--ink);font-family:var(--display);
+  font-size:clamp(9px,2.3vw,13px);padding:1px 6px;border-radius:99px;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.12);z-index:2}
+.flag{position:absolute;top:-18%;right:-30%;white-space:nowrap;font-family:var(--display);font-size:clamp(8px,2vw,11px);color:#fff;padding:1px 5px;border-radius:99px;z-index:3}
+.dotp{position:absolute;inset:38%;border-radius:50%;background:var(--coral);opacity:.85}
+.nexthint{position:absolute;inset:12%;border-radius:30%;border:4px dashed var(--sun-d);animation:pulse2 1s infinite}
+@keyframes pulse2{50%{transform:scale(.85)}}
+.seenmark{position:absolute;top:-6%;left:-6%;width:34%;height:34%;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;font-size:clamp(8px,2vw,12px);z-index:3}
+.me{position:absolute;z-index:5;display:grid;place-items:center;transition:left .22s ease,top .22s ease;pointer-events:none}
+.me .body{width:78%;height:78%;border-radius:50%;background:#fff;border:4px solid var(--coral);display:grid;place-items:center;color:var(--coral);
+  font-size:clamp(14px,3.8vw,26px);box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.me.bump .body{animation:shake .35s}
+.me.hop .body{animation:hop .22s}
+@keyframes hop{50%{transform:translateY(-18%)}}
+
+.pad{display:grid;grid-template-columns:repeat(3,72px);grid-template-rows:repeat(2,64px);gap:8px;justify-content:center;margin:16px auto 4px;
+  grid-template-areas:". u ." "l d r"}
+.pad button{border-radius:20px;background:var(--coral);color:#fff;font-size:30px;display:grid;place-items:center;box-shadow:0 5px 0 var(--coral-d)}
+.pad button:active{transform:translateY(4px);box-shadow:0 1px 0 var(--coral-d)}
+.pad button.glow{background:var(--sun);color:var(--ink);box-shadow:0 5px 0 var(--sun-d)}
+.tools{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--paper);border-radius:99px;padding:10px 16px;font-size:17px;box-shadow:0 4px 0 var(--sky2)}
+.pill:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sky2)}
+.pill[disabled]{opacity:.45;cursor:default}
+.tray{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:12px;min-height:40px}
+.tray .lab{font-family:var(--display);color:var(--ink2);font-size:15px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border-radius:99px;padding:5px 12px 5px 5px;font-family:var(--display);font-size:16px;box-shadow:0 3px 0 var(--sky2)}
+.chip .ci{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:15px}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-160%);background:var(--ink);color:#fff;font-family:var(--display);
+  font-size:19px;padding:12px 20px;border-radius:99px;transition:transform .25s;z-index:30;max-width:calc(100% - 32px);text-align:center}
+.toast.show{transform:translate(-50%,0)}
+
+/* ---------- order ---------- */
+.slots{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin:6px 0 18px}
+.slot{width:100px;height:112px;border-radius:20px;border:3px dashed var(--coral);background:rgba(255,255,255,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  font-family:var(--display);font-size:16px;color:var(--coral)}
+.slot.fill{border-style:solid;border-color:var(--ok);background:var(--paper);color:var(--ink)}
+.slot .ic{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:24px}
+.slot.end{border:0;background:var(--paper);color:var(--ink);box-shadow:0 4px 0 var(--sky2)}
+.arr{color:var(--ink2);font-size:20px}
+
+/* ---------- clear ---------- */
+.overlay{position:fixed;inset:0;background:rgba(36,50,74,.45);display:grid;place-items:center;z-index:40;padding:20px}
+.win{background:var(--paper);border-radius:30px;padding:26px 22px 22px;text-align:center;max-width:420px;width:100%;box-shadow:0 10px 0 rgba(0,0,0,.15);animation:pop .35s}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.win h2{font-family:var(--display);font-weight:400;font-size:40px;margin:4px 0;color:var(--coral)}
+.win .big{display:flex;justify-content:center;gap:8px;font-size:48px;color:#E6E1D6;margin:10px 0}
+.win .big .got{color:var(--sun);animation:pop .4s backwards}
+.win p{color:var(--ink2);margin:6px 0 16px;font-size:17px}
+.btnrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.cta{background:var(--coral);color:#fff;border-radius:99px;padding:14px 24px;font-size:20px;box-shadow:0 5px 0 var(--coral-d)}
+.cta:active{transform:translateY(4px);box-shadow:0 1px 0 var(--coral-d)}
+.cta.alt{background:var(--paper);color:var(--ink);box-shadow:0 5px 0 var(--line);border:2px solid var(--line)}
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+@media (max-width:480px){.mission .txt{font-size:18px}.q{font-size:23px}.pad{grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,58px)}
+  .slot{width:84px;height:100px}.lv .num{width:54px;height:54px}.lv .name{font-size:21px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app" id="app"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<canvas id="fx"></canvas>
+
+<script>
+const ICONS = {"FaSchool":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 640 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M0 224v272c0 8.84 7.16 16 16 16h80V192H32c-17.67 0-32 14.33-32 32zm360-48h-24v-40c0-4.42-3.58-8-8-8h-16c-4.42 0-8 3.58-8 8v64c0 4.42 3.58 8 8 8h48c4.42 0 8-3.58 8-8v-16c0-4.42-3.58-8-8-8zm137.75-63.96l-160-106.67a32.02 32.02 0 0 0-35.5 0l-160 106.67A32.002 32.002 0 0 0 128 138.66V512h128V368c0-8.84 7.16-16 16-16h96c8.84 0 16 7.16 16 16v144h128V138.67c0-10.7-5.35-20.7-14.25-26.63zM320 256c-44.18 0-80-35.82-80-80s35.82-80 80-80 80 35.82 80 80-35.82 80-80 80zm288-64h-64v320h80c8.84 0 16-7.16 16-16V224c0-17.67-14.33-32-32-32z\"></path></svg>","FaBookOpen":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M542.22 32.05c-54.8 3.11-163.72 14.43-230.96 55.59-4.64 2.84-7.27 7.89-7.27 13.17v363.87c0 11.55 12.63 18.85 23.28 13.49 69.18-34.82 169.23-44.32 218.7-46.92 16.89-.89 30.02-14.43 30.02-30.66V62.75c.01-17.71-15.35-31.74-33.77-30.7zM264.73 87.64C197.5 46.48 88.58 35.17 33.78 32.05 15.36 31.01 0 45.04 0 62.75V400.6c0 16.24 13.13 29.78 30.02 30.66 49.49 2.6 149.59 12.11 218.77 46.95 10.62 5.35 23.21-1.94 23.21-13.46V100.63c0-5.29-2.62-10.14-7.27-12.99z\"></path></svg>","FaStore":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 616 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M602 118.6L537.1 15C531.3 5.7 521 0 510 0H106C95 0 84.7 5.7 78.9 15L14 118.6c-33.5 53.5-3.8 127.9 58.8 136.4 4.5.6 9.1.9 13.7.9 29.6 0 55.8-13 73.8-33.1 18 20.1 44.3 33.1 73.8 33.1 29.6 0 55.8-13 73.8-33.1 18 20.1 44.3 33.1 73.8 33.1 29.6 0 55.8-13 73.8-33.1 18.1 20.1 44.3 33.1 73.8 33.1 4.7 0 9.2-.3 13.7-.9 62.8-8.4 92.6-82.8 59-136.4zM529.5 288c-10 0-19.9-1.5-29.5-3.8V384H116v-99.8c-9.6 2.2-19.5 3.8-29.5 3.8-6 0-12.1-.4-18-1.2-5.6-.8-11.1-2.1-16.4-3.6V480c0 17.7 14.3 32 32 32h448c17.7 0 32-14.3 32-32V283.2c-5.4 1.6-10.8 2.9-16.4 3.6-6.1.8-12.1 1.2-18.2 1.2z\"></path></svg>","FaPills":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M112 32C50.1 32 0 82.1 0 144v224c0 61.9 50.1 112 112 112s112-50.1 112-112V144c0-61.9-50.1-112-112-112zm48 224H64V144c0-26.5 21.5-48 48-48s48 21.5 48 48v112zm139.7-29.7c-3.5-3.5-9.4-3.1-12.3.8-45.3 62.5-40.4 150.1 15.9 206.4 56.3 56.3 143.9 61.2 206.4 15.9 4-2.9 4.3-8.8.8-12.3L299.7 226.3zm229.8-19c-56.3-56.3-143.9-61.2-206.4-15.9-4 2.9-4.3 8.8-.8 12.3l210.8 210.8c3.5 3.5 9.4 3.1 12.3-.8 45.3-62.6 40.5-150.1-15.9-206.4z\"></path></svg>","FaHome":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z\"></path></svg>","FaTree":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 384 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M378.31 378.49L298.42 288h30.63c9.01 0 16.98-5 20.78-13.06 3.8-8.04 2.55-17.26-3.28-24.05L268.42 160h28.89c9.1 0 17.3-5.35 20.86-13.61 3.52-8.13 1.86-17.59-4.24-24.08L203.66 4.83c-6.03-6.45-17.28-6.45-23.32 0L70.06 122.31c-6.1 6.49-7.75 15.95-4.24 24.08C69.38 154.65 77.59 160 86.69 160h28.89l-78.14 90.91c-5.81 6.78-7.06 15.99-3.27 24.04C37.97 283 45.93 288 54.95 288h30.63L5.69 378.49c-6 6.79-7.36 16.09-3.56 24.26 3.75 8.05 12 13.25 21.01 13.25H160v24.45l-30.29 48.4c-5.32 10.64 2.42 23.16 14.31 23.16h95.96c11.89 0 19.63-12.52 14.31-23.16L224 440.45V416h136.86c9.01 0 17.26-5.2 21.01-13.25 3.8-8.17 2.44-17.47-3.56-24.26z\"></path></svg>","FaHospital":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M448 492v20H0v-20c0-6.627 5.373-12 12-12h20V120c0-13.255 10.745-24 24-24h88V24c0-13.255 10.745-24 24-24h112c13.255 0 24 10.745 24 24v72h88c13.255 0 24 10.745 24 24v360h20c6.627 0 12 5.373 12 12zM308 192h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12zm-168 64h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12zm104 128h-40c-6.627 0-12 5.373-12 12v84h64v-84c0-6.627-5.373-12-12-12zm64-96h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40c0-6.627-5.373-12-12-12zm-116 12c0-6.627-5.373-12-12-12h-40c-6.627 0-12 5.373-12 12v40c0 6.627 5.373 12 12 12h40c6.627 0 12-5.373 12-12v-40zM182 96h26v26a6 6 0 0 0 6 6h20a6 6 0 0 0 6-6V96h26a6 6 0 0 0 6-6V70a6 6 0 0 0-6-6h-26V38a6 6 0 0 0-6-6h-20a6 6 0 0 0-6 6v26h-26a6 6 0 0 0-6 6v20a6 6 0 0 0 6 6z\"></path></svg>","FaEnvelope":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z\"></path></svg>","FaBreadSlice":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M288 0C108 0 0 93.4 0 169.14 0 199.44 24.24 224 64 224v256c0 17.67 16.12 32 36 32h376c19.88 0 36-14.33 36-32V224c39.76 0 64-24.56 64-54.86C576 93.4 468 0 288 0z\"></path></svg>","MdLocalPolice":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path fill=\"none\" d=\"M0 0h24v24H0z\"></path><path d=\"M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm2.5 11.59.9 3.88-3.4-2.05-3.4 2.05.9-3.87-3-2.59 3.96-.34L12 6.02l1.54 3.64 3.96.34z\"></path></svg>","FaFlagCheckered":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M243.2 189.9V258c26.1 5.9 49.3 15.6 73.6 22.3v-68.2c-26-5.8-49.4-15.5-73.6-22.2zm223.3-123c-34.3 15.9-76.5 31.9-117 31.9C296 98.8 251.7 64 184.3 64c-25 0-47.3 4.4-68 12 2.8-7.3 4.1-15.2 3.6-23.6C118.1 24 94.8 1.2 66.3 0 34.3-1.3 8 24.3 8 56c0 19 9.5 35.8 24 45.9V488c0 13.3 10.7 24 24 24h16c13.3 0 24-10.7 24-24v-94.4c28.3-12.1 63.6-22.1 114.4-22.1 53.6 0 97.8 34.8 165.2 34.8 48.2 0 86.7-16.3 122.5-40.9 8.7-6 13.8-15.8 13.8-26.4V95.9c.1-23.3-24.2-38.8-45.4-29zM169.6 325.5c-25.8 2.7-50 8.2-73.6 16.6v-70.5c26.2-9.3 47.5-15 73.6-17.4zM464 191c-23.6 9.8-46.3 19.5-73.6 23.9V286c24.8-3.4 51.4-11.8 73.6-26v70.5c-25.1 16.1-48.5 24.7-73.6 27.1V286c-27 3.7-47.9 1.5-73.6-5.6v67.4c-23.9-7.4-47.3-16.7-73.6-21.3V258c-19.7-4.4-40.8-6.8-73.6-3.8v-70c-22.4 3.1-44.6 10.2-73.6 20.9v-70.5c33.2-12.2 50.1-19.8 73.6-22v71.6c27-3.7 48.4-1.3 73.6 5.7v-67.4c23.7 7.4 47.2 16.7 73.6 21.3v68.4c23.7 5.3 47.6 6.9 73.6 2.7V143c27-4.8 52.3-13.6 73.6-22.5z\"></path></svg>","FaMapMarkerAlt":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 384 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M172.268 501.67C26.97 291.031 0 269.413 0 192 0 85.961 85.961 0 192 0s192 85.961 192 192c0 77.413-26.97 99.031-172.268 309.67-9.535 13.774-29.93 13.773-39.464 0zM192 272c44.183 0 80-35.817 80-80s-35.817-80-80-80-80 35.817-80 80 35.817 80 80 80z\"></path></svg>","FaStar":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M259.3 17.8L194 150.2 47.9 171.5c-26.2 3.8-36.7 36.1-17.7 54.6l105.7 103-25 145.5c-4.5 26.3 23.2 46 46.4 33.7L288 439.6l130.7 68.7c23.2 12.2 50.9-7.4 46.4-33.7l-25-145.5 105.7-103c19-18.5 8.5-50.8-17.7-54.6L382 150.2 316.7 17.8c-11.7-23.6-45.6-23.9-57.4 0z\"></path></svg>","FaArrowUp":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M34.9 289.5l-22.2-22.2c-9.4-9.4-9.4-24.6 0-33.9L207 39c9.4-9.4 24.6-9.4 33.9 0l194.3 194.3c9.4 9.4 9.4 24.6 0 33.9L413 289.4c-9.5 9.5-25 9.3-34.3-.4L264 168.6V456c0 13.3-10.7 24-24 24h-32c-13.3 0-24-10.7-24-24V168.6L69.2 289.1c-9.3 9.8-24.8 10-34.3.4z\"></path></svg>","FaArrowDown":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M413.1 222.5l22.2 22.2c9.4 9.4 9.4 24.6 0 33.9L241 473c-9.4 9.4-24.6 9.4-33.9 0L12.7 278.6c-9.4-9.4-9.4-24.6 0-33.9l22.2-22.2c9.5-9.5 25-9.3 34.3.4L184 343.4V56c0-13.3 10.7-24 24-24h32c13.3 0 24 10.7 24 24v287.4l114.8-120.5c9.3-9.8 24.8-10 34.3-.4z\"></path></svg>","FaArrowLeft":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M257.5 445.1l-22.2 22.2c-9.4 9.4-24.6 9.4-33.9 0L7 273c-9.4-9.4-9.4-24.6 0-33.9L201.4 44.7c9.4-9.4 24.6-9.4 33.9 0l22.2 22.2c9.5 9.5 9.3 25-.4 34.3L136.6 216H424c13.3 0 24 10.7 24 24v32c0 13.3-10.7 24-24 24H136.6l120.5 114.8c9.8 9.3 10 24.8.4 34.3z\"></path></svg>","FaArrowRight":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z\"></path></svg>","FaRedo":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M500.33 0h-47.41a12 12 0 0 0-12 12.57l4 82.76A247.42 247.42 0 0 0 256 8C119.34 8 7.9 119.53 8 256.19 8.1 393.07 119.1 504 256 504a247.1 247.1 0 0 0 166.18-63.91 12 12 0 0 0 .48-17.43l-34-34a12 12 0 0 0-16.38-.55A176 176 0 1 1 402.1 157.8l-101.53-4.87a12 12 0 0 0-12.57 12v47.41a12 12 0 0 0 12 12h200.33a12 12 0 0 0 12-12V12a12 12 0 0 0-12-12z\"></path></svg>","FaLightbulb":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 352 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M96.06 454.35c.01 6.29 1.87 12.45 5.36 17.69l17.09 25.69a31.99 31.99 0 0 0 26.64 14.28h61.71a31.99 31.99 0 0 0 26.64-14.28l17.09-25.69a31.989 31.989 0 0 0 5.36-17.69l.04-38.35H96.01l.05 38.35zM0 176c0 44.37 16.45 84.85 43.56 115.78 16.52 18.85 42.36 58.23 52.21 91.45.04.26.07.52.11.78h160.24c.04-.26.07-.51.11-.78 9.85-33.22 35.69-72.6 52.21-91.45C335.55 260.85 352 220.37 352 176 352 78.61 272.91-.3 175.45 0 73.44.31 0 82.97 0 176zm176-80c-44.11 0-80 35.89-80 80 0 8.84-7.16 16-16 16s-16-7.16-16-16c0-61.76 50.24-112 112-112 8.84 0 16 7.16 16 16s-7.16 16-16 16z\"></path></svg>","FaVolumeUp":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M215.03 71.05L126.06 160H24c-13.26 0-24 10.74-24 24v144c0 13.25 10.74 24 24 24h102.06l88.97 88.95c15.03 15.03 40.97 4.47 40.97-16.97V88.02c0-21.46-25.96-31.98-40.97-16.97zm233.32-51.08c-11.17-7.33-26.18-4.24-33.51 6.95-7.34 11.17-4.22 26.18 6.95 33.51 66.27 43.49 105.82 116.6 105.82 195.58 0 78.98-39.55 152.09-105.82 195.58-11.17 7.32-14.29 22.34-6.95 33.5 7.04 10.71 21.93 14.56 33.51 6.95C528.27 439.58 576 351.33 576 256S528.27 72.43 448.35 19.97zM480 256c0-63.53-32.06-121.94-85.77-156.24-11.19-7.14-26.03-3.82-33.12 7.46s-3.78 26.21 7.41 33.36C408.27 165.97 432 209.11 432 256s-23.73 90.03-63.48 115.42c-11.19 7.14-14.5 22.07-7.41 33.36 6.51 10.36 21.12 15.14 33.12 7.46C447.94 377.94 480 319.54 480 256zm-141.77-76.87c-11.58-6.33-26.19-2.16-32.61 9.45-6.39 11.61-2.16 26.2 9.45 32.61C327.98 228.28 336 241.63 336 256c0 14.38-8.02 27.72-20.92 34.81-11.61 6.41-15.84 21-9.45 32.61 6.43 11.66 21.05 15.8 32.61 9.45 28.23-15.55 45.77-45 45.77-76.88s-17.54-61.32-45.78-76.86z\"></path></svg>","FaVolumeMute":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M215.03 71.05L126.06 160H24c-13.26 0-24 10.74-24 24v144c0 13.25 10.74 24 24 24h102.06l88.97 88.95c15.03 15.03 40.97 4.47 40.97-16.97V88.02c0-21.46-25.96-31.98-40.97-16.97zM461.64 256l45.64-45.64c6.3-6.3 6.3-16.52 0-22.82l-22.82-22.82c-6.3-6.3-16.52-6.3-22.82 0L416 210.36l-45.64-45.64c-6.3-6.3-16.52-6.3-22.82 0l-22.82 22.82c-6.3 6.3-6.3 16.52 0 22.82L370.36 256l-45.63 45.63c-6.3 6.3-6.3 16.52 0 22.82l22.82 22.82c6.3 6.3 16.52 6.3 22.82 0L416 301.64l45.64 45.64c6.3 6.3 16.52 6.3 22.82 0l22.82-22.82c6.3-6.3 6.3-16.52 0-22.82L461.64 256z\"></path></svg>","FaCheck":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M173.898 439.404l-166.4-166.4c-9.997-9.997-9.997-26.206 0-36.204l36.203-36.204c9.997-9.998 26.207-9.998 36.204 0L192 312.69 432.095 72.596c9.997-9.997 26.207-9.997 36.204 0l36.203 36.204c9.997 9.997 9.997 26.206 0 36.204l-294.4 294.401c-9.998 9.997-26.207 9.997-36.204-.001z\"></path></svg>","FaTimes":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 352 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z\"></path></svg>","FaChild":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 384 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M120 72c0-39.765 32.235-72 72-72s72 32.235 72 72c0 39.764-32.235 72-72 72s-72-32.236-72-72zm254.627 1.373c-12.496-12.497-32.758-12.497-45.254 0L242.745 160H141.254L54.627 73.373c-12.496-12.497-32.758-12.497-45.254 0-12.497 12.497-12.497 32.758 0 45.255L104 213.254V480c0 17.673 14.327 32 32 32h16c17.673 0 32-14.327 32-32V368h16v112c0 17.673 14.327 32 32 32h16c17.673 0 32-14.327 32-32V213.254l94.627-94.627c12.497-12.497 12.497-32.757 0-45.254z\"></path></svg>","MdConstruction":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path fill=\"none\" d=\"M0 0h24v24H0z\"></path><path d=\"m13.783 15.172 2.121-2.121 5.996 5.996-2.121 2.121zM17.5 10c1.93 0 3.5-1.57 3.5-3.5 0-.58-.16-1.12-.41-1.6l-2.7 2.7-1.49-1.49 2.7-2.7c-.48-.25-1.02-.41-1.6-.41C15.57 3 14 4.57 14 6.5c0 .41.08.8.21 1.16l-1.85 1.85-1.78-1.78.71-.71-1.41-1.41L12 3.49a3 3 0 0 0-4.24 0L4.22 7.03l1.41 1.41H2.81l-.71.71 3.54 3.54.71-.71V9.15l1.41 1.41.71-.71 1.78 1.78-7.41 7.41 2.12 2.12L16.34 9.79c.36.13.75.21 1.16.21\"></path></svg>","FaUndo":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M212.333 224.333H12c-6.627 0-12-5.373-12-12V12C0 5.373 5.373 0 12 0h48c6.627 0 12 5.373 12 12v78.112C117.773 39.279 184.26 7.47 258.175 8.007c136.906.994 246.448 111.623 246.157 248.532C504.041 393.258 393.12 504 256.333 504c-64.089 0-122.496-24.313-166.51-64.215-5.099-4.622-5.334-12.554-.467-17.42l33.967-33.967c4.474-4.474 11.662-4.717 16.401-.525C170.76 415.336 211.58 432 256.333 432c97.268 0 176-78.716 176-176 0-97.267-78.716-176-176-176-58.496 0-110.28 28.476-142.274 72.333h98.274c6.627 0 12 5.373 12 12v48c0 6.627-5.373 12-12 12z\"></path></svg>","FaWalking":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 320 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M208 96c26.5 0 48-21.5 48-48S234.5 0 208 0s-48 21.5-48 48 21.5 48 48 48zm94.5 149.1l-23.3-11.8-9.7-29.4c-14.7-44.6-55.7-75.8-102.2-75.9-36-.1-55.9 10.1-93.3 25.2-21.6 8.7-39.3 25.2-49.7 46.2L17.6 213c-7.8 15.8-1.5 35 14.2 42.9 15.6 7.9 34.6 1.5 42.5-14.3L81 228c3.5-7 9.3-12.5 16.5-15.4l26.8-10.8-15.2 60.7c-5.2 20.8.4 42.9 14.9 58.8l59.9 65.4c7.2 7.9 12.3 17.4 14.9 27.7l18.3 73.3c4.3 17.1 21.7 27.6 38.8 23.3 17.1-4.3 27.6-21.7 23.3-38.8l-22.2-89c-2.6-10.3-7.7-19.9-14.9-27.7l-45.5-49.7 17.2-68.7 5.5 16.5c5.3 16.1 16.7 29.4 31.7 37l23.3 11.8c15.6 7.9 34.6 1.5 42.5-14.3 7.7-15.7 1.4-35.1-14.3-43zM73.6 385.8c-3.2 8.1-8 15.4-14.2 21.5l-50 50.1c-12.5 12.5-12.5 32.8 0 45.3s32.7 12.5 45.2 0l59.4-59.4c6.1-6.1 10.9-13.4 14.2-21.5l13.5-33.8c-55.3-60.3-38.7-41.8-47.4-53.7l-20.7 51.5z\"></path></svg>","FaPlay":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 448 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z\"></path></svg>","FaChevronLeft":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 320 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M34.52 239.03L228.87 44.69c9.37-9.37 24.57-9.37 33.94 0l22.67 22.67c9.36 9.36 9.37 24.52.04 33.9L131.49 256l154.02 154.75c9.34 9.38 9.32 24.54-.04 33.9l-22.67 22.67c-9.37 9.37-24.57 9.37-33.94 0L34.52 272.97c-9.37-9.37-9.37-24.57 0-33.94z\"></path></svg>","FaMapMarkedAlt":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 576 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M288 0c-69.59 0-126 56.41-126 126 0 56.26 82.35 158.8 113.9 196.02 6.39 7.54 17.82 7.54 24.2 0C331.65 284.8 414 182.26 414 126 414 56.41 357.59 0 288 0zm0 168c-23.2 0-42-18.8-42-42s18.8-42 42-42 42 18.8 42 42-18.8 42-42 42zM20.12 215.95A32.006 32.006 0 0 0 0 245.66v250.32c0 11.32 11.43 19.06 21.94 14.86L160 448V214.92c-8.84-15.98-16.07-31.54-21.25-46.42L20.12 215.95zM288 359.67c-14.07 0-27.38-6.18-36.51-16.96-19.66-23.2-40.57-49.62-59.49-76.72v182l192 64V266c-18.92 27.09-39.82 53.52-59.49 76.72-9.13 10.77-22.44 16.95-36.51 16.95zm266.06-198.51L416 224v288l139.88-55.95A31.996 31.996 0 0 0 576 426.34V176.02c0-11.32-11.43-19.06-21.94-14.86z\"></path></svg>","FaSearch":"<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z\"></path></svg>"};
+const ic = n => ICONS[n] || '';
+
+const PLACES = {
+  school:{n:'학교',i:'FaSchool',c:'#4A90D9'}, library:{n:'도서관',i:'FaBookOpen',c:'#8E6BD8'},
+  store:{n:'편의점',i:'FaStore',c:'#2EA36B'}, pharmacy:{n:'약국',i:'FaPills',c:'#1FA5A0'},
+  home:{n:'집',i:'FaHome',c:'#F28C28'}, park:{n:'공원',i:'FaTree',c:'#6DB33F'},
+  hospital:{n:'병원',i:'FaHospital',c:'#E5484D'}, post:{n:'우체국',i:'FaEnvelope',c:'#C0507E'},
+  bakery:{n:'빵집',i:'FaBreadSlice',c:'#C98A2E'}, police:{n:'경찰서',i:'MdLocalPolice',c:'#2F4B8A'},
+  crosswalk:{n:'횡단보도',i:'FaWalking',c:'#5A6782'}
+};
+// 조사 helpers
+const has받침 = w => { const c = w.charCodeAt(w.length-1)-0xAC00; return c>=0 && c<11172 && c%28!==0; };
+const eul = w => w + (has받침(w)?'을':'를');
+const eseo = w => w + '에서';
+
+/* map legend: . grass, R road, C crosswalk, X 공사중, S start road, G goal road, letters = buildings */
+const STAGES = [
+  { id:'tut', name:'튜토리얼', short:'연습', color:'#FFC83D', diff:1,
+    desc:'학습지처럼 하나씩 배워요', tutorial:true,
+    start:'school', goal:'library', choices:['school','store','library','pharmacy'],
+    story:['나는 지금 ',['school'],'에 있어요. ',['library'],'에 가고 싶어요.'],
+    map:['....R..','..E.R.L','SRRRCRG','H...R..','....R.P'],
+    legend:{H:'school',E:'store',L:'library',P:'pharmacy'},
+    path:true, hint:'free', tray:true },
+  { id:'s1', name:'실습 1', short:'1', color:'#4A90D9', diff:2,
+    desc:'점선을 따라 공원까지 가요',
+    start:'home', goal:'park', choices:['bakery','home','hospital','park'],
+    story:['나는 ',['home'],'에 있어요. ',['park'],'에 놀러 가고 싶어요.'],
+    map:['KGRRR..','..B.R..','....C..','.M..RRS','....R.H'],
+    legend:{K:'park',B:'bakery',M:'hospital',H:'home'},
+    path:true, hint:'free', tray:true },
+  { id:'s2', name:'실습 2', short:'2', color:'#8E6BD8', diff:3,
+    desc:'점선 없이 스스로 길을 찾아요',
+    start:'school', goal:'post', choices:['store','post','school','bakery','pharmacy'],
+    story:['학교 수업이 끝났어요. 편지를 부치러 ',['post'],'에 가요.'],
+    map:['B.....O.','.RRRR.G.','.R.PR.R.','.R..CRR.','SRRRR...','H.E....M'],
+    legend:{B:'bakery',O:'post',P:'pharmacy',E:'store',H:'school',M:'hospital'},
+    path:false, hint:'free', tray:false },
+  { id:'s3', name:'실습 3', short:'3', color:'#FF6960', diff:4,
+    desc:'공사 중인 길을 피해, 약국에 들렀다 가요',
+    start:'home', goal:'library', via:'pharmacy', choices:['library','store','home','hospital','pharmacy','bakery'],
+    story:['집에서 쉬고 있어요. ',['pharmacy'],'에 들러 약을 사고, 책을 빌리러 ',['library'],'에 가요.'],
+    map:['.......L.','.RRRXRRG.','.RP..RBR.','.R...R.R.','.RRRRRCR.','.R.E.....','HS.....M.'],
+    legend:{L:'library',P:'pharmacy',B:'bakery',E:'store',H:'home',M:'hospital'},
+    path:false, hint:3, tray:false }
+];
+// story text without highlights (for TTS) — 실습2,3 keep the start place implicit
+STAGES.forEach(s => s.storyText = s.story.map(p => Array.isArray(p) ? PLACES[p[0]].n : p).join(''));
+
+const GUIDE = {
+  1:'출발지는 지금 내가 있는 곳이에요. 이야기에서 내가 어디에 있는지 찾아봐요!',
+  2:'목적지는 내가 가고 싶은 곳이에요. 어디에 가고 싶다고 했나요?',
+  3:'빨간 점을 따라가요. 화살표 버튼을 누르거나, 바로 옆 길을 눌러도 움직여요.',
+  4:'오는 길에 본 곳을 떠올려요. 먼저 본 곳부터 차례대로 눌러요.'
+};
+
+/* ---------- storage (per-viewer convenience) ---------- */
+function loadStars(){ try{ return JSON.parse(localStorage.getItem('roadmission-stars')||'{}'); }catch(e){ return {}; } }
+function saveStars(o){ try{ localStorage.setItem('roadmission-stars', JSON.stringify(o)); }catch(e){} }
+let STARS = loadStars();
+
+/* ---------- sound + voice ---------- */
+let soundOn = true, AC = null;
+function tone(seq){
+  if(!soundOn) return;
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    let t = AC.currentTime;
+    seq.forEach(([f,d,type]) => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = type||'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.18,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+      o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+d+.02); t += d*.85;
+    });
+  }catch(e){}
+}
+const SFX = {
+  step:()=>tone([[520,.08]]), bump:()=>tone([[180,.18,'square']]),
+  good:()=>tone([[660,.12],[880,.18]]), bad:()=>tone([[240,.16],[200,.2]]),
+  seen:()=>tone([[784,.1],[1046,.16]]), win:()=>tone([[523,.12],[659,.12],[784,.12],[1046,.32]])
+};
+function say(text){
+  if(!soundOn) return;
+  try{ const s = window.speechSynthesis; if(!s) return; s.cancel();
+    const u = new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.rate=.92; s.speak(u);}catch(e){}
+}
+
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1800); }
+
+/* ---------- helpers ---------- */
+const $app = document.getElementById('app');
+const h = (html) => { const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstElementChild; };
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const icoBadge = (key,cls='ic') => { const p=PLACES[key]; return `<span class="${cls}" style="background:${p.c}">${ic(p.i)}</span>`; };
+function storyHTML(s){
+  return s.story.map(p => Array.isArray(p) ? `<b style="color:${PLACES[p[0]].c}">${PLACES[p[0]].n}</b>` : p).join('');
+}
+function starsHTML(n,total=3){ let o=''; for(let i=0;i<total;i++) o+=`<span class="${i<n?'got':''}">${ic('FaStar')}</span>`; return o; }
+
+/* ---------- HOME ---------- */
+function home(){
+  try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){}
+  $app.innerHTML = `
+  <div class="bar"><div style="width:52px"></div><div class="ttl"></div>
+    <button class="round" id="snd" aria-label="소리 켜기/끄기">${ic(soundOn?'FaVolumeUp':'FaVolumeMute')}</button></div>
+  <section class="hero">
+    <span class="kicker">${ic('FaMapMarkedAlt')} 로드 to 자립 · 1차시</span>
+    <h1>길찾기 미션!</h1>
+    <p>출발지와 목적지를 찾고, 지도 위 길을 따라 목적지까지 가 보세요.</p>
+  </section>
+  <div class="trail" id="trail"></div>
+  <p class="foot">별은 이 기기에만 저장돼요.</p>`;
+  const tr = document.getElementById('trail');
+  STAGES.forEach((s,i) => {
+    const got = STARS[s.id]||0;
+    const b = h(`<button class="lv" aria-label="${s.name} 시작">
+      <span class="num" style="background:${s.color};${s.tutorial?'color:var(--ink)':''}">${s.tutorial?ic('FaPlay'):s.short}</span>
+      <span class="meta"><span class="name">${s.name}<span class="diff" aria-label="난이도 ${s.diff}">${[1,2,3,4].map(k=>`<i class="${k<=s.diff?'f':''}"></i>`).join('')}</span></span>
+        <span class="desc" style="display:block">${s.desc}</span></span>
+      <span class="stars" aria-label="별 ${got}개">${starsHTML(got)}</span></button>`);
+    b.onclick = () => startStage(i);
+    tr.appendChild(b);
+  });
+  document.getElementById('snd').onclick = toggleSound;
+}
+function toggleSound(){ soundOn=!soundOn; const b=document.getElementById('snd'); if(b) b.innerHTML=ic(soundOn?'FaVolumeUp':'FaVolumeMute'); if(!soundOn){try{speechSynthesis.cancel()}catch(e){}} }
+
+/* ---------- STAGE ---------- */
+let G = null;
+function startStage(i){
+  const s = STAGES[i];
+  G = { i, s, step:1, mistakes:0, hintsLeft: s.hint==='free'?Infinity:s.hint, seen:[], visitedVia:false };
+  parseMap();
+  renderStep();
+}
+function parseMap(){
+  const s=G.s; G.rows=s.map.length; G.cols=s.map[0].length; G.grid=[]; G.bld={};
+  for(let r=0;r<G.rows;r++){ G.grid.push([]); for(let c=0;c<G.cols;c++){
+    const ch=s.map[r][c]; let t={k:'g'};
+    if(ch==='R') t={k:'r'}; else if(ch==='C') t={k:'c'}; else if(ch==='X') t={k:'x'};
+    else if(ch==='S'){ t={k:'r'}; G.startPos=[r,c]; } else if(ch==='G'){ t={k:'r'}; G.goalPos=[r,c]; }
+    else if(s.legend[ch]){ t={k:'b',p:s.legend[ch]}; G.bld[s.legend[ch]]=[r,c]; }
+    G.grid[r].push(t);
+  }}
+  G.pos = G.startPos.slice(); G.drawnPos = null;
+}
+const walk = (r,c) => r>=0&&c>=0&&r<G.rows&&c<G.cols && (G.grid[r][c].k==='r'||G.grid[r][c].k==='c');
+
+function shell(){
+  const s=G.s, labels=['출발지','목적지','길찾기','순서'];
+  $app.innerHTML = `
+  <div class="bar">
+    <button class="round" id="back" aria-label="처음 화면으로">${ic('FaChevronLeft')}</button>
+    <div class="ttl">${s.name} · 길찾기 미션</div>
+    <button class="round" id="snd" aria-label="소리 켜기/끄기">${ic(soundOn?'FaVolumeUp':'FaVolumeMute')}</button>
+  </div>
+  <div class="steps">${labels.map((l,k)=>`<span class="${k+1===G.step?'on':k+1<G.step?'done':''}">${k+1<G.step?'✓ ':''}${k+1}. ${l}</span>`).join('')}</div>
+  <div class="mission"><button class="say" id="say" aria-label="미션 읽어 주기">${ic('FaVolumeUp')}</button>
+    <div class="txt">${storyHTML(s)}</div></div>
+  ${s.tutorial?`<div class="guide"><div class="face">${ic('FaStar')}</div><div class="bub" id="bub">${GUIDE[G.step]}</div></div>`:''}
+  <div id="stage"></div>`;
+  document.getElementById('back').onclick = home;
+  document.getElementById('snd').onclick = toggleSound;
+  document.getElementById('say').onclick = () => say(s.storyText);
+  return document.getElementById('stage');
+}
+
+function renderStep(){
+  if(G.step===1||G.step===2) return chooseStep();
+  if(G.step===3) return mapStep();
+  if(G.step===4) return orderStep();
+}
+
+/* step 1 & 2: choose start / goal */
+function chooseStep(){
+  const box = shell(), isStart = G.step===1, s=G.s;
+  const answer = isStart ? s.start : s.goal;
+  const q = isStart ? '출발지는 어디예요?' : '목적지는 어디예요?';
+  box.appendChild(h(`<div><div class="q">${q}</div>
+    <div class="qsub">${isStart?'<b style="background:var(--ok)">출발지</b> = 지금 내가 있는 곳':'<b style="background:var(--coral)">목적지</b> = 내가 가고 싶은 곳'}</div>
+    <div class="cards" id="cards"></div></div>`));
+  const wrap = document.getElementById('cards');
+  const order = s.tutorial ? s.choices : shuffle(s.choices);
+  order.forEach(k => {
+    const p=PLACES[k];
+    const b=h(`<button class="pc" aria-label="${p.n}">${icoBadge(k)}<span>${p.n}</span></button>`);
+    if(!isStart && k===s.start){ b.classList.add('used'); b.setAttribute('aria-disabled','true'); }
+    if(s.tutorial && k===answer) setTimeout(()=>b.classList.add('hint'), 2500);
+    b.onclick = () => {
+      if(k===answer){
+        b.classList.remove('hint'); b.classList.add('right'); SFX.good();
+        const m = `맞아요! ${isStart?'출발지':'목적지'}는 ${p.n}${has받침(p.n)?'이에요':'예요'}.`;
+        toast(m); say(m);
+        setTimeout(()=>{ G.step++; renderStep(); }, 1100);
+      } else {
+        G.mistakes++; SFX.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+        const m = `${p.n}${has받침(p.n)?'은':'는'} ${isStart?'출발지가':'목적지가'} 아니에요. 다시 찾아봐요!`;
+        toast(m); say(m);
+      }
+    };
+    wrap.appendChild(b);
+  });
+  if(s.tutorial) say(GUIDE[G.step]); else say(q);
+}
+
+/* step 3: map */
+function bfs(from,to){
+  const key=(r,c)=>r*100+c, prev=new Map([[key(...from),null]]), q=[from];
+  while(q.length){ const [r,c]=q.shift(); if(r===to[0]&&c===to[1]) break;
+    for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){ const nr=r+dr,nc=c+dc; if(walk(nr,nc)&&!prev.has(key(nr,nc))){prev.set(key(nr,nc),[r,c]); q.push([nr,nc]);} } }
+  if(!prev.has(key(...to))) return null;
+  const path=[]; let cur=to; while(cur){ path.unshift(cur); cur=prev.get(key(...cur)); } return path;
+}
+function viaTarget(){ // nearest road tile next to the via building
+  const [br,bc]=G.bld[G.s.via]; let best=null;
+  for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){ const r=br+dr,c=bc+dc; if(walk(r,c)){ const p=bfs(G.pos,[r,c]); if(p&&(!best||p.length<best.length)) best=p; } }
+  return best;
+}
+function mapStep(){
+  const box = shell(), s=G.s;
+  G.walked = new Set([G.pos.join()]);
+  G.guide = s.path ? bfs(G.startPos,G.goalPos).map(p=>p.join()) : [];
+  const viaTxt = s.via ? `<b>${PLACES[s.via].n}</b>에 들렀다가 ` : '';
+  box.appendChild(h(`<div>
+    <div class="q" style="font-size:22px">${PLACES[s.start].n}에서 ${viaTxt.replace(/<\/?b>/g,'')}${PLACES[s.goal].n}까지 가요</div>
+    <div class="qsub">${s.path?'빨간 점을 따라가요':'길을 스스로 찾아요'}${s.via?' · 공사 중인 길은 못 지나가요':''}</div>
+    <div class="mapwrap"><div class="map" id="map" style="grid-template-columns:repeat(${G.cols},1fr)"></div></div>
+    <div class="pad" id="pad">
+      <button style="grid-area:u" data-d="u" aria-label="위로">${ic('FaArrowUp')}</button>
+      <button style="grid-area:l" data-d="l" aria-label="왼쪽으로">${ic('FaArrowLeft')}</button>
+      <button style="grid-area:d" data-d="d" aria-label="아래로">${ic('FaArrowDown')}</button>
+      <button style="grid-area:r" data-d="r" aria-label="오른쪽으로">${ic('FaArrowRight')}</button>
+    </div>
+    <div class="tools">
+      <button class="pill" id="hintb">${ic('FaLightbulb')} 힌트${G.hintsLeft!==Infinity?` <span id="hl">(${G.hintsLeft})</span>`:''}</button>
+      <button class="pill" id="resetb">${ic('FaRedo')} 처음부터</button>
+    </div>
+    ${s.tray?`<div class="tray" id="tray"><span class="lab">지나온 곳</span></div>`:''}
+  </div>`));
+  drawMap();
+  document.querySelectorAll('#pad button').forEach(b => b.onclick = () => move(b.dataset.d));
+  document.getElementById('hintb').onclick = showHint;
+  document.getElementById('resetb').onclick = () => { G.pos=G.startPos.slice(); G.drawnPos=null; G.seen=[]; G.visitedVia=false; G.walked=new Set([G.pos.join()]); drawMap(); const t=document.getElementById('tray'); if(t) t.innerHTML='<span class="lab">지나온 곳</span>'; };
+  if(s.tutorial) say(GUIDE[3]); else say(`${PLACES[s.start].n}에서 ${s.via?PLACES[s.via].n+'에 들렀다가 ':''}${PLACES[s.goal].n}까지 가요.`);
+}
+function drawMap(hintPos){
+  const m = document.getElementById('map'); if(!m) return;
+  m.innerHTML='';
+  for(let r=0;r<G.rows;r++) for(let c=0;c<G.cols;c++){
+    const t=G.grid[r][c]; const d=document.createElement('div');
+    d.className='t '+({g:'',r:'r',c:'c',x:'x',b:'b'}[t.k]);
+    if(t.k==='x') d.innerHTML=`<span class="cone">${ic('MdConstruction')}</span>`;
+    if(t.k==='b'){ const p=PLACES[t.p];
+      let flag='';
+      if(t.p===G.s.start) flag=`<span class="flag" style="background:var(--ok)">출발</span>`;
+      if(t.p===G.s.goal) flag=`<span class="flag" style="background:var(--coral)">도착</span>`;
+      if(t.p===G.s.via) flag=`<span class="flag" style="background:var(--sun-d)">들르기</span>`;
+      const seen = G.seen.includes(t.p) ? `<span class="seenmark">${ic('FaCheck')}</span>`:'';
+      d.innerHTML=`<div class="bld" style="background:${p.c}">${ic(p.i)}${flag}${seen}<span class="tag">${p.n}</span></div>`;
+    }
+    const k=r+','+c;
+    if(G.guide.includes(k) && !G.walked.has(k) && !(r===G.pos[0]&&c===G.pos[1])) d.insertAdjacentHTML('beforeend','<span class="dotp"></span>');
+    if(hintPos && hintPos[0]===r && hintPos[1]===c) d.insertAdjacentHTML('beforeend','<span class="nexthint"></span>');
+    d.onclick = () => { const dr=r-G.pos[0], dc=c-G.pos[1]; if(Math.abs(dr)+Math.abs(dc)===1) move(dr===-1?'u':dr===1?'d':dc===-1?'l':'r'); };
+    m.appendChild(d);
+  }
+  const me=document.createElement('div'); me.className='me'; me.id='me';
+  me.style.width=(100/G.cols)+'%'; me.style.height=(100/G.rows)+'%';
+  const from = G.drawnPos || G.pos;
+  me.style.left=(from[1]*100/G.cols)+'%'; me.style.top=(from[0]*100/G.rows)+'%';
+  me.innerHTML=`<div class="body">${ic('FaChild')}</div>`;
+  m.appendChild(me);
+  if(from!==G.pos){ void me.offsetWidth; me.style.left=(G.pos[1]*100/G.cols)+'%'; me.style.top=(G.pos[0]*100/G.rows)+'%'; }
+  G.drawnPos = G.pos;
+}
+function move(dir){
+  if(G.step!==3 || G.busy) return;
+  const [dr,dc]={u:[-1,0],d:[1,0],l:[0,-1],r:[0,1]}[dir];
+  const nr=G.pos[0]+dr, nc=G.pos[1]+dc, me=document.getElementById('me');
+  document.querySelectorAll('#pad button').forEach(b=>b.classList.remove('glow'));
+  if(!walk(nr,nc)){
+    SFX.bump(); me.classList.remove('bump'); void me.offsetWidth; me.classList.add('bump');
+    const t = (nr>=0&&nc>=0&&nr<G.rows&&nc<G.cols) ? G.grid[nr][nc] : null;
+    toast(t&&t.k==='x' ? '공사 중이라 지나갈 수 없어요!' : t&&t.k==='b' ? `${PLACES[t.p].n}${has받침(PLACES[t.p].n)?'은':'는'} 건물이에요. 길로 가요!` : '여기는 길이 아니에요!');
+    return;
+  }
+  G.pos=[nr,nc]; G.walked.add(nr+','+nc); SFX.step();
+  drawMap();
+  checkSeen();
+  if(nr===G.goalPos[0]&&nc===G.goalPos[1]){
+    if(G.s.via && !G.visitedVia){ toast(`앗! ${PLACES[G.s.via].n}에 먼저 들러야 해요.`); say(`${PLACES[G.s.via].n}에 먼저 들러야 해요.`); return; }
+    G.busy=true; SFX.win(); const m=`${PLACES[G.s.goal].n}에 도착했어요!`; toast(m); say(m);
+    setTimeout(()=>{ G.busy=false; G.step=4; renderStep(); }, 1500);
+  }
+}
+function checkSeen(){
+  const [r,c]=G.pos, found=[];
+  if(G.grid[r][c].k==='c') found.push('crosswalk');
+  for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){ const t=G.grid[r+dr]&&G.grid[r+dr][c+dc]; if(t&&t.k==='b') found.push(t.p); }
+  found.forEach(p => {
+    if(p===G.s.via) G.visitedVia = true;
+    if(p===G.s.start||p===G.s.goal||G.seen.includes(p)) return;
+    G.seen.push(p); SFX.seen();
+    const m = `${eul(PLACES[p].n)} 지나요!`; toast(m); say(m);
+    const tr=document.getElementById('tray');
+    if(tr) tr.appendChild(h(`<span class="chip">${icoBadge(p,'ci')}${PLACES[p].n}</span>`));
+    if(p!=='crosswalk'){ const [br,bc]=G.bld[p]; const tile=document.getElementById('map').children[br*G.cols+bc]; const b=tile&&tile.querySelector('.bld'); if(b) b.insertAdjacentHTML('beforeend',`<span class="seenmark">${ic('FaCheck')}</span>`); }
+  });
+}
+function showHint(){
+  if(G.hintsLeft<=0){ toast('힌트를 다 썼어요. 스스로 해 봐요!'); return; }
+  let path = (G.s.via && !G.visitedVia) ? viaTarget() : bfs(G.pos,G.goalPos);
+  if(!path || path.length<2){ toast('주변을 둘러봐요!'); return; }
+  const [nr,nc]=path[1], dr=nr-G.pos[0], dc=nc-G.pos[1];
+  const dir = dr===-1?'u':dr===1?'d':dc===-1?'l':'r';
+  if(G.hintsLeft!==Infinity){ G.hintsLeft--; const hl=document.getElementById('hl'); if(hl) hl.textContent=`(${G.hintsLeft})`; if(G.hintsLeft<=0) document.getElementById('hintb').disabled=true; }
+  drawMap([nr,nc]);
+  document.querySelector(`#pad button[data-d="${dir}"]`).classList.add('glow');
+  const w={u:'위로',d:'아래로',l:'왼쪽으로',r:'오른쪽으로'}[dir]; toast(`${w} 가 봐요!`); say(`${w} 가 봐요.`);
+}
+
+/* step 4: order */
+function orderStep(){
+  const box=shell(), s=G.s;
+  const answer = G.seen.slice(0,4);
+  if(!answer.length){ return finish(); }
+  const allLand = Object.keys(G.bld).filter(p=>p!==s.start&&p!==s.goal);
+  if(s.map.some(row=>row.includes('C'))) allLand.push('crosswalk');
+  const distract = shuffle(allLand.filter(p=>!answer.includes(p))).slice(0, s.tutorial?1:2);
+  const pool = shuffle(answer.concat(distract));
+  G.filled = 0;
+  box.appendChild(h(`<div><div class="q">지나온 곳을 순서대로 눌러요</div>
+    <div class="qsub">${s.tutorial?'처음 본 곳부터 차례대로!':'지나오지 않은 곳도 섞여 있어요'}</div>
+    <div class="slots" id="slots"></div><div class="cards" id="pool"></div></div>`));
+  const sl=document.getElementById('slots');
+  sl.appendChild(h(`<div class="slot end">${icoBadge(s.start)}${PLACES[s.start].n}</div>`));
+  answer.forEach((_,k)=>{ sl.appendChild(h(`<span class="arr">${ic('FaArrowRight')}</span>`)); sl.appendChild(h(`<div class="slot" id="slot${k}">${k+1}</div>`)); });
+  sl.appendChild(h(`<span class="arr">${ic('FaArrowRight')}</span>`));
+  sl.appendChild(h(`<div class="slot end">${icoBadge(s.goal)}${PLACES[s.goal].n}</div>`));
+  const pw=document.getElementById('pool');
+  pool.forEach(p => {
+    const b=h(`<button class="pc" aria-label="${PLACES[p].n}">${icoBadge(p)}<span>${PLACES[p].n}</span></button>`);
+    if(s.tutorial && p===answer[0]) setTimeout(()=>{ if(G.filled===0) b.classList.add('hint'); }, 3000);
+    b.onclick = () => {
+      if(p===answer[G.filled]){
+        const slot=document.getElementById('slot'+G.filled);
+        slot.classList.add('fill'); slot.innerHTML=`${icoBadge(p)}${PLACES[p].n}`;
+        b.classList.remove('hint'); b.classList.add('used'); SFX.good(); G.filled++;
+        if(G.filled===answer.length){ toast('순서를 모두 맞혔어요!'); say('순서를 모두 맞혔어요!'); setTimeout(finish, 1200); }
+        else if(s.tutorial){ const nb=[...pw.children].find(x=>x.getAttribute('aria-label')===PLACES[answer[G.filled]].n); setTimeout(()=>{ if(nb && !nb.classList.contains('used')) nb.classList.add('hint'); }, 3000); }
+      } else {
+        G.mistakes++; SFX.bad(); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+        const m = answer.includes(p) ? '그건 조금 뒤에 봤어요. 다시 생각해 봐요!' : `${PLACES[p].n}${has받침(PLACES[p].n)?'은':'는'} 지나오지 않았어요!`;
+        toast(m); say(m);
+      }
+    };
+    pw.appendChild(b);
+  });
+  say(s.tutorial ? GUIDE[4] : '지나온 곳을 순서대로 눌러요.');
+}
+
+/* clear */
+function finish(){
+  const stars = G.mistakes<=1?3:G.mistakes<=3?2:1;
+  const id=G.s.id; STARS[id]=Math.max(STARS[id]||0,stars); saveStars(STARS);
+  const next = G.i+1<STAGES.length ? STAGES[G.i+1] : null;
+  const ov = h(`<div class="overlay" role="dialog" aria-label="미션 성공"><div class="win">
+    <div style="font-family:var(--display);color:var(--ink2);font-size:18px">${G.s.name}</div>
+    <h2>미션 성공!</h2>
+    <div class="big">${[0,1,2].map(k=>`<span class="${k<stars?'got':''}" style="animation-delay:${.15+k*.18}s">${ic('FaStar')}</span>`).join('')}</div>
+    <p>${stars===3?'완벽해요! 혼자서 길을 찾았어요.':stars===2?'잘했어요! 조금만 더 연습하면 완벽해요.':'끝까지 해냈어요! 한 번 더 해 볼까요?'}</p>
+    <div class="btnrow">
+      <button class="cta alt" id="again">${'다시 하기'}</button>
+      ${next?`<button class="cta" id="next">${next.name} 하러 가기</button>`:`<button class="cta" id="next">처음 화면</button>`}
+    </div></div></div>`);
+  document.body.appendChild(ov);
+  confetti(); say(`미션 성공! 별 ${stars}개를 받았어요.`);
+  ov.querySelector('#again').onclick = () => { ov.remove(); startStage(G.i); };
+  ov.querySelector('#next').onclick = () => { ov.remove(); next ? startStage(G.i+1) : home(); };
+}
+
+function confetti(){
+  const cv=document.getElementById('fx'), ctx=cv.getContext('2d');
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  cv.width=innerWidth; cv.height=innerHeight;
+  const cols=['#FF6960','#FFC83D','#4A90D9','#2EA36B','#8E6BD8'];
+  const ps=Array.from({length:120},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.5,vx:(Math.random()-.5)*3,vy:2+Math.random()*3,
+    s:6+Math.random()*7,r:Math.random()*6,vr:(Math.random()-.5)*.3,c:cols[Math.floor(Math.random()*cols.length)]}));
+  let f=0;(function tick(){ ctx.clearRect(0,0,cv.width,cv.height);
+    ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.r);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/3,p.s,p.s*.66);ctx.restore();});
+    if(++f<180) requestAnimationFrame(tick); else ctx.clearRect(0,0,cv.width,cv.height); })();
+}
+
+document.addEventListener('keydown', e => {
+  const m={ArrowUp:'u',ArrowDown:'d',ArrowLeft:'l',ArrowRight:'r'}[e.key];
+  if(m && G && G.step===3 && !document.querySelector('.overlay')){ e.preventDefault(); move(m); }
+});
+home();
+</script>
