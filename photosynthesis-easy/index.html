@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>새싹 박사 광합성 탐구 (쉬운 단계)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Gothic:wght@700;800&display=swap">
+<style>
+/* Layout: 앱형 3단 — 위 머리띠(진행 잎사귀) / 가운데 그림+학습지 문장 / 아래 고정 답 고르기 칸 */
+:root{
+  --paper:#f2f7ea; --grid:#e0ead2; --card:#fffdf6; --ink:#24382a; --ink2:#5c705f;
+  --leaf:#3c9d58; --leaf-d:#2a7a42; --leaf-l:#dff2e1;
+  --sun:#ffc83d; --sun-l:#fff2c9; --btb:#2f7fd6;
+  --coral:#ff7b54; --coral-l:#ffe4da; --line:#d5e1c8;
+  --display:"Jua","Nanum Gothic","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Nanum Gothic","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:var(--paper);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;
+  color:var(--ink); font-family:var(--body); font-weight:700;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:4px solid var(--btb);outline-offset:3px}
+#app{height:100%;display:flex;flex-direction:column}
+
+/* ---------- 머리띠 ---------- */
+.top{
+  display:flex;align-items:center;gap:12px;
+  padding-block:10px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  background:var(--card);border-bottom:3px solid var(--line);
+}
+.back{width:52px;height:52px;border-radius:16px;border:3px solid var(--line);background:#fff;font-size:24px;flex:none;font-family:var(--display)}
+.back:active{transform:scale(.95)}
+.leaves{display:flex;gap:6px;flex:1;min-width:0;justify-content:center;flex-wrap:wrap}
+.leafdot{width:34px;height:34px;flex:none}
+.leafdot path{stroke:var(--ink);stroke-width:2.5}
+.page{font-family:var(--display);font-size:18px;background:var(--sun-l);border:3px solid var(--sun);border-radius:999px;padding:6px 14px;flex:none;white-space:nowrap}
+
+/* ---------- 가운데 ---------- */
+.main{flex:1;overflow:auto;padding-block:18px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.12fr);gap:20px;align-items:start}
+.art{background:var(--card);border:3px solid var(--ink);border-radius:26px;padding:12px;box-shadow:6px 6px 0 var(--line);position:sticky;top:0}
+.art svg{display:block;width:100%;height:auto;max-height:52vh}
+.work{display:flex;flex-direction:column;gap:14px;min-width:0}
+.coach{display:flex;align-items:flex-end;gap:10px}
+.coach svg{width:74px;flex:none}
+.bubble{position:relative;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:12px 16px;font-family:var(--display);font-size:22px;line-height:1.35;flex:1;min-width:0}
+.bubble::before{content:"";position:absolute;left:-14px;bottom:16px;border:7px solid transparent;border-right:9px solid var(--ink)}
+.bubble.good{background:var(--leaf-l);border-color:var(--leaf-d)}
+.bubble.oops{background:var(--coral-l);border-color:var(--coral)}
+.bubble .hint{display:block;font-family:var(--body);font-size:17px;color:var(--ink2);margin-top:4px}
+.sec{font-family:var(--display);font-size:17px;color:var(--leaf-d);letter-spacing:.02em}
+h2{font-family:var(--display);font-weight:400;font-size:clamp(26px,3.4vw,34px);margin:0;text-wrap:balance;line-height:1.2}
+.items{display:flex;flex-direction:column;gap:12px}
+.item{background:var(--card);border:3px solid var(--line);border-radius:20px;padding:14px 18px;transition:opacity .2s}
+.item.now{border-color:var(--coral);box-shadow:0 0 0 5px var(--coral-l)}
+.item.later{opacity:.42}
+.item.info{background:transparent;border-style:dashed;font-size:20px;line-height:1.5}
+.sent{font-size:clamp(20px,2.3vw,25px);line-height:2.15;margin:0;word-break:keep-all}
+.blank{display:inline-flex;align-items:center;justify-content:center;min-width:4.2em;height:1.7em;padding:0 .4em;margin:0 .15em;border-radius:12px;border:3px dashed #b9c6ad;background:#fff;vertical-align:middle;font-family:var(--display);font-weight:400;line-height:1}
+.blank.now{border:3px solid var(--coral);background:var(--coral-l);color:var(--coral);animation:breathe 1.4s ease-in-out infinite}
+.blank.done{border:3px solid var(--leaf);background:var(--leaf-l);color:var(--leaf-d)}
+.blank.pop{animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+.pick{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;font-size:clamp(20px,2.3vw,24px)}
+.pick .blank{min-width:5.6em;height:1.9em}
+.taps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tapc{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:10px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:18px;line-height:1.3;text-align:center;word-break:keep-all;box-shadow:0 5px 0 var(--line);position:relative}
+.tapc svg{width:min(88px,100%);height:auto}
+.tapc .cover{position:absolute;inset:0;border-radius:15px;background:var(--sun-l);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:46px;color:#d29b00}
+.tapc.seen{border-color:var(--leaf);background:var(--leaf-l)}
+.tapc:active{transform:translateY(3px);box-shadow:0 2px 0 var(--line)}
+
+/* ---------- 아래 고르기 칸 ---------- */
+.dock{background:var(--card);border-top:3px solid var(--ink);padding-block:12px calc(12px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.dock-in{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.dock-label{font-family:var(--display);font-size:18px;color:var(--ink2)}
+.opts{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;width:100%}
+.opt{min-width:132px;flex:0 1 170px;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:8px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:0 6px 0 var(--ink);transition:transform .08s}
+.opt svg{width:58px;height:58px}
+.opt span{font-family:var(--display);font-size:24px;line-height:1.15;word-break:keep-all;text-align:center}
+.opt:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+.opt.nope{opacity:.3;box-shadow:0 2px 0 var(--ink);transform:translateY(4px);pointer-events:none}
+.opt.shake{animation:shake .4s}
+.opt.glow{border-color:var(--leaf);box-shadow:0 6px 0 var(--leaf-d),0 0 0 6px #bfe8c6;animation:breathe 1s ease-in-out infinite}
+.next{font-family:var(--display);font-size:30px;background:var(--leaf);color:#fff;border:3px solid var(--ink);border-radius:22px;padding:12px 40px;box-shadow:0 7px 0 var(--ink);animation:breathe 1.4s ease-in-out infinite}
+.next:active{transform:translateY(5px);box-shadow:0 2px 0 var(--ink)}
+
+/* ---------- 시작 화면 ---------- */
+.start{max-width:880px;margin:0 auto;display:grid;grid-template-columns:auto minmax(0,1fr);gap:28px;align-items:center;padding-block:10px}
+.start .hero svg{width:min(250px,40vw)}
+.kicker{font-family:var(--display);font-size:20px;color:var(--leaf-d)}
+.start h1{font-family:var(--display);font-weight:400;font-size:clamp(40px,6vw,64px);margin:4px 0 8px;line-height:1.05;text-wrap:balance}
+.start h1 em{font-style:normal;color:var(--leaf);}
+.start p{font-size:20px;line-height:1.6;margin:0 0 16px;color:var(--ink2)}
+.namebox{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.namebox label{font-family:var(--display);font-size:22px}
+.namebox input{font:inherit;font-size:26px;padding:12px 16px;border-radius:16px;border:3px solid var(--ink);background:#fff;width:100%;max-width:340px;color:var(--ink)}
+.plan{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.plan div{background:var(--card);border:3px solid var(--line);border-radius:18px;padding:10px 14px;font-size:18px;line-height:1.4}
+.plan b{font-family:var(--display);font-weight:400;font-size:20px;display:block;color:var(--leaf-d)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.ghost{font-family:var(--display);font-size:18px;background:transparent;border:3px dashed #b9c6ad;border-radius:14px;padding:8px 14px;color:var(--ink2)}
+.ghost.warn{border-color:var(--coral);color:var(--coral);border-style:solid}
+
+/* ---------- 결과 카드 ---------- */
+.final{max-width:980px;margin:0 auto;background:var(--card);border:4px solid var(--ink);border-radius:30px;padding:22px clamp(16px,3vw,32px);box-shadow:8px 8px 0 var(--line);position:relative}
+.final-head{display:flex;gap:16px;align-items:center;flex-wrap:wrap;border-bottom:3px dashed var(--line);padding-bottom:14px;margin-bottom:16px}
+.final-head svg{width:76px}
+.final-head h1{font-family:var(--display);font-weight:400;font-size:clamp(30px,4vw,42px);margin:0;line-height:1.1}
+.final-head .who{font-size:20px;color:var(--ink2)}
+.stamp{position:absolute;right:22px;top:16px;width:118px;height:118px;border-radius:50%;border:5px double var(--coral);color:var(--coral);display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--display);font-size:21px;line-height:1.15;transform:rotate(-12deg);background:rgba(255,255,255,.6)}
+.res{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.res section{border:3px solid var(--line);border-radius:22px;padding:12px 14px;min-width:0}
+.res h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 6px}
+.res svg{width:100%;height:auto;display:block}
+.res ul{margin:8px 0 0;padding-left:1.1em;font-size:18px;line-height:1.6}
+.learn{margin-top:16px;background:var(--sun-l);border:3px solid var(--sun);border-radius:22px;padding:14px 18px}
+.learn h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 6px}
+.learn p{font-size:21px;margin:4px 0;line-height:1.6}
+.learn mark{background:#fff;border:2px solid var(--leaf);border-radius:8px;padding:0 6px;color:var(--leaf-d);font-family:var(--display);font-weight:400}
+.fav{margin-top:16px}
+.fav h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{display:flex;align-items:center;gap:8px;background:#fff;border:3px solid var(--ink);border-radius:999px;padding:6px 16px 6px 8px;font-family:var(--display);font-size:20px}
+.chip svg{width:40px;height:40px}
+.chip.on{background:var(--leaf-l);border-color:var(--leaf-d);box-shadow:0 0 0 4px #bfe8c6}
+.shot{margin-top:16px;font-size:19px;color:var(--ink2);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.shot b{font-family:var(--display);font-weight:400;color:var(--ink);font-size:21px}
+
+
+/* ---------- 내 생각 ---------- */
+.think{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.think h2{margin-top:2px}
+.think textarea{font:inherit;font-size:24px;line-height:1.6;width:100%;min-height:180px;padding:14px 16px;border-radius:20px;border:3px solid var(--ink);background:#fff;color:var(--ink);resize:vertical;
+  background-image:linear-gradient(transparent 37px,#e3ead9 38px);background-size:100% 38.4px;background-position:0 14px}
+.starters{display:flex;flex-wrap:wrap;gap:10px}
+.starter{background:var(--sun-l);border:3px solid var(--sun);border-radius:16px;padding:8px 14px;font-family:var(--display);font-size:20px;text-align:left;line-height:1.3}
+.starter:active{transform:scale(.97)}
+.panel{background:var(--card);border:3px solid var(--line);border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.panel h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
+.panel .sub{font-size:17px;color:var(--ink2)}
+.next[disabled]{background:#b9c6ad;animation:none;cursor:not-allowed}
+.mine{margin-top:16px;border:3px solid var(--line);border-radius:22px;padding:12px 16px}
+.mine h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 6px}
+.mine p{font-size:21px;line-height:1.7;margin:0;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.saves{margin-top:18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.save{font-family:var(--display);font-size:24px;background:var(--btb);color:#fff;border:3px solid var(--ink);border-radius:18px;padding:10px 22px;box-shadow:0 6px 0 var(--ink)}
+.save.jpg{background:#ff7b54}
+.save:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+.save[disabled]{opacity:.6}
+.overlay{position:fixed;inset:0;background:rgba(20,35,25,.72);z-index:50;display:flex;align-items:center;justify-content:center;
+  padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{background:var(--card);border:4px solid var(--ink);border-radius:26px;padding:16px;max-width:720px;width:100%;max-height:100%;display:flex;flex-direction:column;gap:12px}
+.sheet h3{font-family:var(--display);font-weight:400;font-size:26px;margin:0}
+.sheet .imgbox{overflow:auto;border-radius:14px;border:2px solid var(--line);min-height:0;flex:1}
+.sheet img{display:block;width:100%;height:auto}
+.sheet p{margin:0;font-size:17px;color:var(--ink2);line-height:1.5}
+.sheet .row a{text-decoration:none}
+
+
+/* 쉬운 단계: 더 크게 */
+.sent{font-size:clamp(24px,2.9vw,32px)}
+.pick{font-size:clamp(24px,2.8vw,30px)}
+.opt{flex:0 1 250px;min-width:150px;padding:12px 12px 14px;gap:6px}
+.opt svg{width:96px;height:96px}
+.opt span{font-size:32px}
+.bubble{font-size:24px}
+.item.info{font-size:26px}
+@media (max-width:780px){.opt{min-width:130px;flex-basis:160px}.opt svg{width:72px;height:72px}.opt span{font-size:26px}}
+@keyframes breathe{50%{transform:scale(1.05)}}
+@keyframes pop{0%{transform:scale(.4)}100%{transform:scale(1)}}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+@media (max-width:780px){
+  .wrap{grid-template-columns:minmax(0,1fr)}
+  .art{position:static}
+  .art svg{max-height:34vh}
+  .start{grid-template-columns:minmax(0,1fr);text-align:left}
+  .start .hero{display:flex;justify-content:center}
+  .res{grid-template-columns:minmax(0,1fr)}
+  .stamp{width:92px;height:92px;font-size:17px;right:12px;top:12px}
+  .opt{min-width:104px;flex-basis:130px}
+  .opt svg{width:46px;height:46px}
+  .opt span{font-size:20px}
+  .leafdot{width:26px;height:26px}
+  .page{font-size:15px;padding:4px 10px}
+  .taps{grid-template-columns:minmax(0,1fr)}
+  .tapc{flex-direction:row;text-align:left}
+  .tapc svg{width:60px}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="gSun" cx="40%" cy="38%" r="70%"><stop offset="0" stop-color="#fff6b8"/><stop offset="1" stop-color="#ffbf2e"/></radialGradient>
+    <linearGradient id="gFoil" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfcfd"/><stop offset=".45" stop-color="#c9d0d7"/><stop offset=".7" stop-color="#eef1f4"/><stop offset="1" stop-color="#9ea8b2"/></linearGradient>
+    <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfeaff"/><stop offset="1" stop-color="#f4fbff"/></linearGradient>
+    <linearGradient id="gSoil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a87149"/><stop offset="1" stop-color="#7a4d2f"/></linearGradient>
+    <linearGradient id="gPot" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e88559"/><stop offset="1" stop-color="#c2552f"/></linearGradient>
+    <linearGradient id="gLeaf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8bd673"/><stop offset="1" stop-color="#3b9a50"/></linearGradient>
+    <linearGradient id="gWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2b27a"/><stop offset="1" stop-color="#c08850"/></linearGradient>
+    <radialGradient id="gBub" cx="35%" cy="30%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#9fd6ff"/></radialGradient>
+    <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e8f3fa"/><stop offset="1" stop-color="#ffffff"/></linearGradient>
+  </defs>
+</svg>
+
+<div id="app"></div>
+
+<script>
+(function(){
+const INK = '#24382a';
+const C = { blue:'#3a86dc', yellow:'#f6cc3b', red:'#e5533d', green:'#5bb85a', navy:'#2c2f6e', iodine:'#d9893a', none:'#e4eaef' };
+const SW = `stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
+const T = (x,y,s,txt,extra='') => `<text x="${x}" y="${y}" font-family="Jua, sans-serif" font-size="${s}" text-anchor="middle" ${/fill=/.test(extra)?extra:`fill="${INK}" ${extra}`}>${txt}</text>`;
+
+/* ============ 그림 조각 ============ */
+function sun(cx,cy,r,face=true){
+  let rays='';
+  for(let i=0;i<12;i++){const a=i*Math.PI/6, r1=r+5, r2=r+(i%2?11:16);
+    rays+=`<line x1="${cx+Math.cos(a)*r1}" y1="${cy+Math.sin(a)*r1}" x2="${cx+Math.cos(a)*r2}" y2="${cy+Math.sin(a)*r2}" stroke="#ffaa00" stroke-width="${Math.max(3,r/6)}" stroke-linecap="round"/>`;}
+  const f = face ? `<circle cx="${cx-r*.33}" cy="${cy-r*.1}" r="${r*.09}" fill="${INK}"/><circle cx="${cx+r*.33}" cy="${cy-r*.1}" r="${r*.09}" fill="${INK}"/>
+    <path d="M${cx-r*.3} ${cy+r*.22} Q${cx} ${cy+r*.5} ${cx+r*.3} ${cy+r*.22}" fill="none" stroke="${INK}" stroke-width="${Math.max(2,r/10)}" stroke-linecap="round"/>
+    <ellipse cx="${cx-r*.55}" cy="${cy+r*.2}" rx="${r*.14}" ry="${r*.09}" fill="#ff9a7a" opacity=".7"/><ellipse cx="${cx+r*.55}" cy="${cy+r*.2}" rx="${r*.14}" ry="${r*.09}" fill="#ff9a7a" opacity=".7"/>` : '';
+  return rays+`<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#gSun)" ${SW}/>`+f;
+}
+function leaf(x,y,s,rot,fill='url(#gLeaf)',vein=true){
+  return `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">
+    <path d="M0 -40 C28 -30 32 18 0 42 C-32 18 -28 -30 0 -40Z" fill="${fill}" stroke="${INK}" stroke-width="3" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+    ${vein?`<path d="M0 -30 L0 38 M0 -6 L12 -16 M0 10 L15 0 M0 -6 L-12 -16 M0 10 L-15 0" stroke="rgba(20,50,25,.28)" stroke-width="2" vector-effect="non-scaling-stroke" fill="none" stroke-linecap="round"/>`:''}
+  </g>`;
+}
+function foilBlob(x,y,rx,ry){
+  const pts=[]; for(let i=0;i<14;i++){const a=i/14*Math.PI*2, k=i%2?0.86:1.04; pts.push(`${(x+Math.cos(a)*rx*k).toFixed(1)},${(y+Math.sin(a)*ry*k).toFixed(1)}`);}
+  return `<polygon points="${pts.join(' ')}" fill="url(#gFoil)" ${SW}/>
+    <path d="M${x-rx*.5} ${y-ry*.3} l${rx*.25} ${ry*.25} l${rx*.2} ${-ry*.2} l${rx*.25} ${ry*.3} M${x-rx*.4} ${y+ry*.35} l${rx*.3} ${-ry*.2} l${rx*.3} ${ry*.25}" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M${x-rx*.2} ${y+ry*.05} l${rx*.35} ${-ry*.1}" stroke="#8d97a1" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+}
+function bubble(x,y,r,label,fill='url(#gBub)',fs){
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" ${SW}/><ellipse cx="${x-r*.38}" cy="${y-r*.4}" rx="${r*.2}" ry="${r*.13}" fill="#fff" transform="rotate(-30 ${x-r*.38} ${y-r*.4})"/>`+
+    (label?T(x,y+(fs||r*.62)*.36,fs||r*.62,label):'');
+}
+function cloud(x,y,s,label,fill='#cfd5dc'){
+  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-30 14 a14 14 0 0 1 2 -27 a18 18 0 0 1 33 -6 a14 14 0 0 1 23 10 a12 12 0 0 1 2 23Z" fill="${fill}" stroke="${INK}" stroke-width="3" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>${label?T(0,8,17,label):''}</g>`;
+}
+function arrow(x1,y1,x2,y2,color,w=7,dash=''){
+  const a=Math.atan2(y2-y1,x2-x1), h=w*2.4;
+  const bx=x2-Math.cos(a)*h, by=y2-Math.sin(a)*h;
+  const p1=`${bx+Math.cos(a+Math.PI/2)*h*.7},${by+Math.sin(a+Math.PI/2)*h*.7}`, p2=`${bx+Math.cos(a-Math.PI/2)*h*.7},${by+Math.sin(a-Math.PI/2)*h*.7}`;
+  return `<line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" ${dash?`stroke-dasharray="${dash}"`:''}/><polygon points="${x2},${y2} ${p1} ${p2}" fill="${color}" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>`;
+}
+function tag(x,y,txt,bg='#fff',fs=17,stroke=INK){
+  const w = Math.max(44, txt.length*fs*.92+18);
+  return `<rect x="${x-w/2}" y="${y-fs*.95}" width="${w}" height="${fs*1.5}" rx="${fs*.6}" fill="${bg}" stroke="${stroke}" stroke-width="2.5"/>`+T(x,y+fs*.12,fs,txt);
+}
+function elodea(x,y1,y2){
+  let s=`<path d="M${x} ${y2} C${x-7} ${(y1+y2)/2+25} ${x+7} ${(y1+y2)/2-25} ${x} ${y1}" stroke="#2c6f35" stroke-width="3" fill="none"/>`;
+  for(let y=y2-8;y>y1+4;y-=11){
+    s+=`<ellipse cx="${x-8}" cy="${y}" rx="8" ry="2.8" fill="#4fae4f" transform="rotate(-28 ${x-8} ${y})"/><ellipse cx="${x+8}" cy="${y-5}" rx="8" ry="2.8" fill="#3f9a45" transform="rotate(28 ${x+8} ${y-5})"/>`;
+  }
+  return s;
+}
+function tube(x,y,o={}){
+  const w=o.w||24,h=o.h||150, lt=y+(o.lt||55);
+  const body=`M${x-w} ${y} V${y+h} a${w} ${w} 0 0 0 ${2*w} 0 V${y}`;
+  const liq=`M${x-w+3} ${lt} V${y+h} a${w-3} ${w-3} 0 0 0 ${2*w-6} 0 V${lt}Z`;
+  let s=`<g opacity="${o.dim?.4:1}">`;
+  if(o.focus) s+=`<rect x="${x-w-14}" y="${y-30}" width="${2*w+28}" height="${h+w+50}" rx="20" fill="#ffe4da" stroke="#ff7b54" stroke-width="3" stroke-dasharray="8 6"/>`;
+  s+=`<path d="${body}" fill="url(#gGlass)" stroke="${INK}" stroke-width="3"/><path d="${liq}" fill="${o.color||C.none}"/>`;
+  if(o.color) s+=`<path d="M${x-w+3} ${lt} H${x+w-3}" stroke="rgba(255,255,255,.7)" stroke-width="3"/>`;
+  if(o.elodea) s+=elodea(x,lt-6,y+h+w-8);
+  if(o.bubbles) s+=`<circle cx="${x+10}" cy="${lt+30}" r="3.5" fill="#fff" stroke="${INK}" stroke-width="1.5"/><circle cx="${x+6}" cy="${lt+14}" r="2.5" fill="#fff" stroke="${INK}" stroke-width="1.5"/><circle cx="${x-10}" cy="${lt+44}" r="3" fill="#fff" stroke="${INK}" stroke-width="1.5"/>`;
+  if(o.q) s+=T(x,y+h-14,30,'?','fill="#8a97a3"');
+  s+=`<path d="${body}" fill="none" stroke="${INK}" stroke-width="3"/><path d="M${x-w+8} ${y+14} V${y+h-6}" stroke="#fff" stroke-width="4" opacity=".85" stroke-linecap="round"/>`;
+  s+=`<rect x="${x-w-5}" y="${y-8}" width="${2*w+10}" height="11" rx="5" fill="#f4f9fc" stroke="${INK}" stroke-width="3"/>`;
+  if(o.foil){
+    const yb = o.foil==='half' ? y+68 : y+h+w+4;
+    s+=`<path d="M${x-w-7} ${y-4} L${x-w+6} ${y-10} L${x+4} ${y-5} L${x+w+8} ${y-9} L${x+w+9} ${yb-6} L${x+w-6} ${yb+4} L${x} ${yb-3} L${x-w-5} ${yb+5}Z" fill="url(#gFoil)" ${SW}/>`;
+    for(let yy=y+14; yy<yb-10; yy+=26) s+=`<path d="M${x-w+2} ${yy} l12 8 l10 -7 l14 9" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M${x-w+6} ${yy+14} l18 -4" stroke="#8d97a1" stroke-width="2" fill="none" stroke-linecap="round"/>`;
+  }
+  if(o.letter){ s+=`<circle cx="${x}" cy="${y-30}" r="15" fill="#fff" ${SW}/>`+T(x,y-22,22,o.letter); }
+  return s+'</g>';
+}
+function dropper(x,y,drop='#b9672a'){
+  return `<rect x="${x-11}" y="${y}" width="22" height="30" rx="11" fill="#ff7b54" ${SW}/><path d="M${x-7} ${y+28} H${x+7} L${x+3} ${y+78} H${x-3}Z" fill="url(#gGlass)" ${SW}/><path d="M${x-4} ${y+56} L${x+4} ${y+56} L${x+3} ${y+78} H${x-3}Z" fill="${drop}"/>
+  <path d="M${x} ${y+88} c-5 8 -7 11 -7 14 a7 7 0 0 0 14 0 c0 -3 -2 -6 -7 -14Z" fill="${drop}" ${SW}/>`;
+}
+
+/* ============ 꼬마 과학자 (새싹 박사) ============ */
+function mascot(mood='happy'){
+  const mouth = mood==='oops'
+    ? `<path d="M53 89 Q60 84 67 89" fill="none" ${SW}/>`
+    : `<path d="M51 85 Q60 98 69 85Z" fill="#e8604c" ${SW}/>`;
+  return `<svg viewBox="0 0 120 150" aria-hidden="true">
+  <path d="M60 32 C60 22 61 16 62 9" stroke="#2a7a42" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M62 13 C70 0 88 2 92 9 C83 18 70 20 62 13Z" fill="#6cc46f" ${SW}/>
+  <path d="M61 15 C52 3 35 5 31 12 C40 21 54 21 61 15Z" fill="#9adb7c" ${SW}/>
+  <path d="M26 150 C26 120 40 106 60 106 C80 106 94 120 94 150Z" fill="#fff" ${SW}/>
+  <path d="M51 106 L60 122 L69 106Z" fill="#3c9d58" ${SW}/>
+  <path d="M60 122 V150 M48 108 L56 132 M72 108 L64 132" fill="none" ${SW}/>
+  <rect x="71" y="132" width="15" height="12" rx="3" fill="#eaf4ff" ${SW}/>
+  <path d="M76 132 V125 h5 v7" fill="#bfe6ff" ${SW}/>
+  <circle cx="60" cy="68" r="38" fill="#ffd9b6" ${SW}/>
+  <path d="M22 64 C20 38 40 28 60 28 C82 28 100 40 98 64 C90 52 76 47 62 48 C48 47 33 53 22 64Z" fill="#5a3b2a" ${SW}/>
+  <path d="M24 58 C40 50 80 50 96 58" stroke="#3c9d58" stroke-width="7" fill="none"/>
+  <circle cx="45" cy="54" r="11" fill="#bfe6ff" ${SW}/><circle cx="75" cy="54" r="11" fill="#bfe6ff" ${SW}/>
+  <path d="M40 50 l4 -3 M70 50 l4 -3" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <ellipse cx="47" cy="76" rx="4.5" ry="6" fill="${INK}"/><ellipse cx="73" cy="76" rx="4.5" ry="6" fill="${INK}"/>
+  <circle cx="48.5" cy="74" r="1.6" fill="#fff"/><circle cx="74.5" cy="74" r="1.6" fill="#fff"/>
+  <ellipse cx="36" cy="86" rx="6" ry="4" fill="#ff9e8a" opacity=".75"/><ellipse cx="84" cy="86" rx="6" ry="4" fill="#ff9e8a" opacity=".75"/>
+  ${mouth}
+  </svg>`;
+}
+
+/* ============ 답 카드 그림 (64×64) ============ */
+const tubeIcon = (col,extra='') => `<path d="M18 10 V42 a14 14 0 0 0 28 0 V10" fill="url(#gGlass)" ${SW}/><path d="M20.5 24 V42 a11.5 11.5 0 0 0 23 0 V24Z" fill="${col}"/>${extra}<path d="M18 10 V42 a14 14 0 0 0 28 0 V10" fill="none" ${SW}/><rect x="14" y="5" width="36" height="8" rx="4" fill="#f4f9fc" ${SW}/><path d="M24 18 V44" stroke="#fff" stroke-width="3" opacity=".8" stroke-linecap="round"/>`;
+const ICON = {
+  '산소': bubble(32,32,25,'O₂','url(#gBub)',19),
+  '이산화탄소': cloud(32,34,1,'CO₂'),
+  '질소': bubble(32,32,25,'N₂','#e3dcff',19),
+  '물': `<path d="M32 5 C24 20 13 30 13 41 a19 19 0 0 0 38 0 C51 30 40 20 32 5Z" fill="#5db8f0" ${SW}/><path d="M22 40 a10 10 0 0 0 8 10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round"/>`,
+  '빛': sun(32,32,15),
+  '햇볕': sun(32,32,15),
+  '녹말': `<path d="M14 32 L2 20 L4 44Z M50 32 L62 20 L60 44Z" fill="#ffc83d" ${SW}/><ellipse cx="32" cy="32" rx="19" ry="15" fill="#ff8a5b" ${SW}/><path d="M22 20 Q28 32 22 44 M32 17 Q38 32 32 47 M42 20 Q48 32 42 44" stroke="#fff" stroke-width="3" fill="none" opacity=".75"/>`,
+  '광합성': leaf(34,38,.62,35)+sun(16,16,8,false),
+  '호흡': `<path d="M32 8 V30" ${SW}/><path d="M30 28 C20 18 8 26 8 44 C8 56 22 58 28 50 C31 46 30 36 30 28Z" fill="#ff9fb0" ${SW}/><path d="M34 28 C44 18 56 26 56 44 C56 56 42 58 36 50 C33 46 34 36 34 28Z" fill="#ff9fb0" ${SW}/>`,
+  '소화': `<path d="M8 32 H56 a24 22 0 0 1 -48 0Z" fill="#7cc4e8" ${SW}/><path d="M12 32 Q32 12 52 32Z" fill="#fff" ${SW}/><path d="M26 22 l3 2 M36 20 l3 2 M30 27 l3 2" stroke="#c9c2b0" stroke-width="2.5" stroke-linecap="round"/>`,
+  'O₂': `<circle cx="22" cy="32" r="14" fill="#ef5a4a" ${SW}/><circle cx="42" cy="32" r="14" fill="#ef5a4a" ${SW}/><circle cx="17" cy="27" r="3.5" fill="#fff" opacity=".8"/><circle cx="37" cy="27" r="3.5" fill="#fff" opacity=".8"/>`,
+  'CO₂': `<circle cx="13" cy="32" r="11" fill="#ef5a4a" ${SW}/><circle cx="51" cy="32" r="11" fill="#ef5a4a" ${SW}/><circle cx="32" cy="32" r="13" fill="#3b3f46" ${SW}/><circle cx="28" cy="27" r="3.5" fill="#fff" opacity=".6"/>`,
+  'H₂O': `<circle cx="14" cy="44" r="9" fill="#fff" ${SW}/><circle cx="50" cy="44" r="9" fill="#fff" ${SW}/><circle cx="32" cy="30" r="16" fill="#ef5a4a" ${SW}/><circle cx="26" cy="24" r="4" fill="#fff" opacity=".8"/>`,
+  '파란색': tubeIcon(C.blue),
+  '노란색': tubeIcon(C.yellow),
+  '빨간색': tubeIcon(C.red),
+  '초록색': tubeIcon(C.green),
+  '청람색': tubeIcon(C.navy),
+  '변화 없다': leaf(32,32,.66,40,'#ecd383')+`<circle cx="28" cy="30" r="6" fill="${C.iodine}" ${SW}/>`,
+  '받았다': sun(16,16,9,false)+leaf(40,40,.5,35)+`<path d="M24 24 l6 6 M20 30 l5 4 M29 19 l4 6" stroke="#ffaa00" stroke-width="3" stroke-linecap="round"/>`,
+  '받지 않았다': sun(16,16,9,false)+foilBlob(40,40,19,17),
+  '있다': `<circle cx="32" cy="32" r="25" fill="#dff2e1" stroke="#2a7a42" stroke-width="4"/><path d="M20 33 L29 42 L45 23" fill="none" stroke="#2a7a42" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>`,
+  '없다': `<circle cx="32" cy="32" r="25" fill="#ffe4da" stroke="#e5533d" stroke-width="4"/><path d="M22 22 L42 42 M42 22 L22 42" stroke="#e5533d" stroke-width="6" stroke-linecap="round"/>`,
+  '그냥 둔다': tubeIcon(C.yellow),
+  '검정말을 넣는다': tubeIcon(C.yellow, elodea(32,26,52)),
+  '검정말 넣고 호일로 감싼다': tubeIcon(C.yellow)+`<path d="M15 8 L33 4 L49 8 L49 54 L32 60 L15 54Z" fill="url(#gFoil)" ${SW}/><path d="M20 20 l8 5 l8 -5 l8 6 M20 38 l10 -3 l12 4" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  '어둠': `<circle cx="32" cy="32" r="27" fill="#2f3966" ${SW}/><path d="M38 14 a18 18 0 1 0 12 28 a14 14 0 1 1 -12 -28Z" fill="#ffe680" ${SW}/><circle cx="18" cy="20" r="2" fill="#fff"/><circle cx="22" cy="46" r="1.6" fill="#fff"/>`,
+  '썩을 때': `<path d="M6 46 h44 a8 8 0 0 0 0 -16 h-44Z" fill="#a77447" ${SW}/><ellipse cx="6" cy="38" rx="5" ry="8" fill="#e6c79a" ${SW}/><path d="M18 38 h22" stroke="#7a4d2f" stroke-width="2.5"/><path d="M36 30 v-6 a8 6 0 0 1 16 0 v0Z" fill="#e5533d" ${SW}/><path d="M44 24 v6" ${SW}/><path d="M14 22 q4 -6 0 -12 M24 20 q4 -6 0 -12" stroke="#7c8b4a" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  '태울 때': `<path d="M32 6 C40 18 50 24 48 38 a16 14 0 0 1 -32 0 C14 28 22 24 24 14 C28 20 30 22 32 6Z" fill="#ff8a3d" ${SW}/><path d="M32 24 C36 30 40 33 39 40 a7 6 0 0 1 -14 0 C25 34 30 31 32 24Z" fill="#ffd34d"/><path d="M8 52 h48 l-4 8 h-40Z" fill="#3b3f46" ${SW}/>`,
+  '자동차가 움직일 때': `<path d="M14 40 V32 l8 -12 h20 l8 12 h6 v8Z" fill="#3a86dc" ${SW}/><path d="M24 22 h8 v10 h-14Z M36 22 h5 l6 10 h-11Z" fill="#cfeaff" ${SW}/><circle cx="24" cy="42" r="6" fill="#3b3f46" ${SW}/><circle cx="48" cy="42" r="6" fill="#3b3f46" ${SW}/>${cloud(8,50,.32,'')}`
+};
+
+ICON['받게']=ICON['받았다']; ICON['받지 않게']=ICON['받지 않았다'];
+const OPTBG={'파란색':'#d8eeff','노란색':'#fff2c9','청람색':'#e1e2ff','변화 없다':'#fbf1d6','있다':'#dff2e1','없다':'#ffe4da','산소':'#e6f5ff','이산화탄소':'#eef0f3','빛':'#fff6d6','어둠':'#e3e6f2','광합성':'#e3f5e3'};
+const icon = k => ICON[k] ? `<svg viewBox="0 0 64 64" aria-hidden="true">${ICON[k]}</svg>` : '';
+
+/* ============ 장면 그림 (사진 대신) ============ */
+const frame = (inner, vb='0 0 400 300') => `<svg viewBox="${vb}" role="img">${inner}</svg>`;
+const skyBg = (h=300) => `<rect x="0" y="0" width="400" height="${h}" rx="18" fill="url(#gSky)"/>`;
+
+const ART = {
+  air(){ return frame(skyBg()+cloud(70,52,1.3,'','#fff')+cloud(330,40,1,'','#fff')+
+    `<rect x="0" y="246" width="400" height="54" rx="0" fill="#9ad27a"/><path d="M0 246 Q100 232 200 246 T400 246" fill="#9ad27a" stroke="${INK}" stroke-width="3"/>`+
+    `<rect x="318" y="180" width="16" height="70" fill="#a87149" ${SW}/><circle cx="326" cy="166" r="36" fill="url(#gLeaf)" ${SW}/><circle cx="306" cy="182" r="20" fill="#6cc46f" ${SW}/>`+
+    bubble(120,140,48,'O₂','url(#gBub)',30)+T(120,212,22,'산소')+
+    cloud(225,128,1.7,'CO₂')+T(225,185,22,'이산화탄소')+
+    bubble(40,232,20,'N₂','#e3dcff',14)+bubble(268,224,10,'')+bubble(186,60,12,'')+bubble(46,108,8,''));
+  },
+  formula(p){
+    const card=(x,label,mol,f,done)=>`<rect x="${x}" y="30" width="170" height="240" rx="22" fill="#fff" ${SW}/>`+T(x+85,72,26,label)+`<g transform="translate(${x+25} 95) scale(1.9)">${mol}</g>`+
+      `<rect x="${x+30}" y="212" width="110" height="44" rx="14" fill="${done?'#dff2e1':'#ffe4da'}" stroke="${done?'#2a7a42':'#ff7b54'}" stroke-width="3" ${done?'':'stroke-dasharray="7 5"'}/>`+T(x+85,244,28,done?f:'?');
+    return frame(card(20,'산소',ICON['O₂'],'O₂',p>=1)+card(210,'이산화탄소',ICON['CO₂'],'CO₂',p>=2));
+  },
+  breath(){
+    return frame(skyBg()+`<g transform="translate(118 30) scale(1.38)">${mascot().replace(/<\/?svg[^>]*>/g,'')}</g>`+
+      arrow(18,214,150,192,'#3a86dc',9)+tag(78,180,'산소 O₂','#d8eeff',19)+
+      arrow(250,196,384,226,'#ff8a3d',9)+tag(318,262,'이산화탄소 CO₂','#ffe2cc',18)+
+      T(78,252,18,'들이마시기')+T(318,182,18,'내쉬기'));
+  },
+  co2(){
+    const spot=(x,k,lab)=>`<g transform="translate(${x-48} 150) scale(1.5)">${ICON[k]}</g>`+cloud(x+6,120,.85,'CO₂')+T(x,272,18,lab);
+    return frame(skyBg()+`<rect x="0" y="240" width="400" height="60" fill="#cfe6b8"/><path d="M0 240 H400" stroke="${INK}" stroke-width="3"/>`+
+      spot(72,'썩을 때','썩을 때')+spot(200,'태울 때','태울 때')+spot(328,'자동차가 움직일 때','자동차'));
+  },
+  plant(p, zoom){
+    let s=skyBg()+`<rect x="0" y="232" width="400" height="68" fill="url(#gSoil)"/><path d="M0 232 H400" stroke="${INK}" stroke-width="3"/>`;
+    s+=sun(62,62,30)+`<path d="M98 86 L168 128 M92 104 L150 160" stroke="#ffaa00" stroke-width="4" stroke-dasharray="3 9" stroke-linecap="round"/>`;
+    s+=`<path d="M210 234 C206 190 216 150 210 92" stroke="#3a8a3e" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+    s+=`<path d="M210 234 C200 252 186 262 176 282 M210 236 C214 256 228 266 240 284 M210 238 V290 M200 254 L188 258 M222 258 L232 254" stroke="#f1e2c4" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+    s+=leaf(172,170,.95,-62)+leaf(250,150,1,58)+leaf(186,118,.75,-35)+leaf(238,100,.72,35)+leaf(210,72,.6,0);
+    s+=`<path d="M150 290 c-4 7 -6 10 -6 13" fill="none"/>`+`<path d="M140 268 c-4 7 -6 9 -6 12 a6 6 0 0 0 12 0 c0 -3 -2 -5 -6 -12Z" fill="#5db8f0" stroke="${INK}" stroke-width="2"/><path d="M266 262 c-4 7 -6 9 -6 12 a6 6 0 0 0 12 0 c0 -3 -2 -5 -6 -12Z" fill="#5db8f0" stroke="${INK}" stroke-width="2"/>`;
+    s+=arrow(244,262,224,240,'#5db8f0',5)+T(300,286,18,'물','fill="#fff"');
+    s+=cloud(345,196,1.05,'CO₂')+arrow(318,184,278,162,'#9aa3ad',6);
+    s+=bubble(345,62,26,'O₂','url(#gBub)',18)+arrow(266,120,318,76,'#3a86dc',6);
+    if(zoom){
+      s+=tag(118,246,'뿌리','#fff',17)+`<circle cx="330" cy="128" r="0" />`;
+      s+=`<g><circle cx="88" cy="182" r="40" fill="#bfe6a8" ${SW}/><ellipse cx="78" cy="176" rx="9" ry="5" fill="#2c6f35"/><ellipse cx="78" cy="176" rx="3" ry="2" fill="#bfe6a8"/><ellipse cx="100" cy="194" rx="9" ry="5" fill="#2c6f35"/><ellipse cx="100" cy="194" rx="3" ry="2" fill="#bfe6a8"/><path d="M118 196 L138 206" ${SW}/></g>`+tag(88,132,'잎의 작은 구멍','#fff',15);
+    }
+    return frame(s);
+  },
+  equation(p){
+    const tiles=[['물',54],['이산화탄소',158],['빛',262],[null,366],['녹말',470],['산소',574]];
+    const ops=[['+',106],['+',210],['→',314],['→',418],['+',522]];
+    const blankOf={0:0,1:1,2:2,4:3,5:4};
+    let s=`<rect x="0" y="0" width="628" height="200" rx="18" fill="#fffaf0"/>`;
+    tiles.forEach((t,i)=>{
+      const x=t[1];
+      if(t[0]===null){ s+=`<rect x="${x-44}" y="20" width="88" height="160" rx="18" fill="#dff2e1" stroke="#2a7a42" stroke-width="3"/>`+`<g transform="translate(${x-36} 40) scale(1.12)">${leaf(32,32,.7,30)}</g>`+T(x,148,17,'잎')+T(x,170,15,'(엽록체)'); return; }
+      const b=blankOf[i], done=p>b, now=p===b;
+      if(now) s+=`<rect x="${x-44}" y="20" width="88" height="160" rx="18" fill="#ffe4da" stroke="#ff7b54" stroke-width="3" stroke-dasharray="7 5"/>`;
+      s+=`<g transform="translate(${x-34} 38) scale(1.06)">${ICON[t[0]]}</g>`;
+      s+=`<rect x="${x-40}" y="128" width="80" height="40" rx="12" fill="${done?'#dff2e1':'#fff'}" stroke="${done?'#2a7a42':'#b9c6ad'}" stroke-width="3" ${done?'':'stroke-dasharray="6 4"'}/>`+T(x,155,done&&t[0].length>3?15:20,done?t[0]:'?');
+    });
+    ops.forEach(o=>s+=T(o[1],92,34,o[0],'fill="#5c705f"'));
+    return frame(s,'0 0 628 200');
+  },
+  beaker(p){
+    const bk=(x,col,q)=>`<path d="M${x} 112 V236 a12 12 0 0 0 12 12 H${x+96} a12 12 0 0 0 12 -12 V112" fill="url(#gGlass)" ${SW}/><path d="M${x+3} 160 V236 a9 9 0 0 0 9 9 H${x+96} a9 9 0 0 0 9 -9 V160Z" fill="${col}"/>`+
+      (q?T(x+54,218,40,'?','fill="#8a97a3"'):'')+`<path d="M${x} 112 V236 a12 12 0 0 0 12 12 H${x+96} a12 12 0 0 0 12 -12 V112" fill="none" ${SW}/><path d="M${x-6} 110 H${x+114}" ${SW}/><path d="M${x+14} 128 V230" stroke="#fff" stroke-width="5" opacity=".8" stroke-linecap="round"/>`;
+    let s=`<rect x="0" y="0" width="400" height="300" rx="18" fill="#fffaf0"/>`;
+    s+=bk(30,C.blue,false)+tag(84,282,p>=1?'BTB용액 = 파란색':'BTB용액 = ?', p>=1?'#d8eeff':'#fff',16);
+    s+=bk(250,p>=2?C.yellow:C.none,p<2);
+    s+=`<path d="M330 30 V60 Q330 70 322 76 L300 96 V226" fill="none" stroke="#ff7b54" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`;
+    s+=`<circle cx="292" cy="214" r="6" fill="#fff" ${SW}/><circle cx="310" cy="196" r="5" fill="#fff" ${SW}/><circle cx="296" cy="180" r="4" fill="#fff" ${SW}/>`;
+    s+=arrow(150,170,226,170,'#5c705f',6)+T(188,150,22,'후~')+T(188,206,15,'숨 불기');
+    s+=`<g transform="translate(330 4) scale(.5)">${ICON['호흡']}</g>`;
+    s+=tag(304,282,p>=2?'노란색으로 변해요':'어떤 색?', p>=2?'#fff2c9':'#fff',16);
+    if(p>=3) s+=cloud(214,96,.8,'CO₂');
+    return frame(s);
+  },
+  tubesSetup(p){
+    let s=`<rect x="0" y="0" width="400" height="300" rx="18" fill="#fffaf0"/>`;
+    const col = p>=2?C.yellow:C.none;
+    s+=tube(110,58,{color:col,letter:'A',q:p<2})+tube(200,58,{color:col,letter:'B',elodea:true})+tube(290,58,{color:col,letter:'C',foil:'full'});
+    s+=`<rect x="52" y="186" width="296" height="26" rx="8" fill="url(#gWood)" ${SW}/><path d="M66 212 V246 M334 212 V246" ${SW}/>`;
+    const lab=['그냥 둔다','검정말','검정말+호일'];
+    [110,200,290].forEach((x,i)=>{ s+= p>=3+i ? tag(x,270,lab[i],'#dff2e1',15,'#2a7a42') : tag(x,270,'?','#fff',17,'#b9c6ad'); });
+    return frame(s);
+  },
+  foods(p){
+    let s=`<rect x="0" y="0" width="400" height="300" rx="18" fill="#fffaf0"/><ellipse cx="200" cy="222" rx="186" ry="44" fill="#fff" ${SW}/><ellipse cx="200" cy="218" rx="150" ry="30" fill="#f4f7fa"/>`;
+    s+=`<ellipse cx="96" cy="206" rx="50" ry="32" fill="#f3dc9b" stroke="#b68a4c" stroke-width="6"/><ellipse cx="96" cy="206" rx="50" ry="32" fill="none" ${SW}/><circle cx="76" cy="196" r="3" fill="#c9a364"/><circle cx="114" cy="214" r="3" fill="#c9a364"/>`;
+    s+=`<path d="M152 226 Q156 164 200 160 Q244 164 248 226Z" fill="#fff" ${SW}/>`;
+    for(let i=0;i<12;i++){const x=170+(i*37)%62, y=180+(i*23)%40; s+=`<ellipse cx="${x}" cy="${y}" rx="5" ry="2.6" fill="#ece6d6" transform="rotate(${i*29} ${x} ${y})"/>`;}
+    s+=`<circle cx="304" cy="206" r="38" fill="#4f9a3c" ${SW}/><circle cx="304" cy="206" r="31" fill="#dcefb4"/><circle cx="304" cy="206" r="14" fill="#c7e398"/>`;
+    for(let i=0;i<8;i++){const a=i/8*Math.PI*2; s+=`<ellipse cx="${304+Math.cos(a)*15}" cy="${206+Math.sin(a)*15}" rx="4" ry="2" fill="#f6f8e6" transform="rotate(${i*45} ${304+Math.cos(a)*15} ${206+Math.sin(a)*15})"/>`;}
+    if(p>=1){
+      s+=`<path d="M78 200 q8 -16 24 -10 q16 4 12 16 q-6 14 -24 10 q-16 -4 -12 -16Z" fill="${C.navy}" opacity=".92"/>`;
+      s+=`<path d="M180 196 q10 -14 26 -8 q14 8 6 20 q-10 12 -26 6 q-12 -6 -6 -18Z" fill="${C.navy}" opacity=".92"/>`;
+      s+=`<ellipse cx="300" cy="204" rx="12" ry="8" fill="${C.iodine}" opacity=".9"/>`;
+      s+=tag(96,150,'청람색!','#e6e7ff',16)+tag(200,138,'청람색!','#e6e7ff',16)+tag(304,150,'그대로','#fff',16);
+    } else {
+      s+=dropper(96,26,C.iodine)+dropper(200,18,C.iodine)+dropper(304,26,C.iodine);
+    }
+    s+=T(96,288,20,'감자')+T(200,288,20,'밥')+T(304,288,20,'오이');
+    return frame(s);
+  },
+  pot(){
+    let s=skyBg();
+    s+=sun(350,48,26)+`<path d="M330 72 L292 110 M346 80 L318 122" stroke="#ffaa00" stroke-width="4" stroke-dasharray="3 9" stroke-linecap="round"/>`;
+    s+=`<path d="M200 226 C196 190 200 150 200 70 M200 190 C180 170 150 140 132 120 M200 180 C230 160 252 140 268 132 M200 150 C190 120 176 100 170 86 M200 140 C214 116 228 98 236 82" stroke="#3a8a3e" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+    s+=leaf(170,78,.7,-25)+leaf(236,76,.7,25)+leaf(200,56,.6,0)+leaf(150,176,.7,-70)+leaf(252,184,.7,70);
+    s+=leaf(276,124,1,62);
+    s+=leaf(124,114,1,-62)+foilBlob(124,114,44,34);
+    s+=`<circle cx="318" cy="168" r="18" fill="#fff" ${SW}/>`+T(318,176,22,'①')+`<circle cx="76" cy="164" r="18" fill="#fff" ${SW}/>`+T(76,172,22,'②');
+    s+=`<rect x="128" y="220" width="144" height="18" rx="6" fill="#d96a42" ${SW}/><path d="M138 238 L262 238 L250 292 L150 292Z" fill="url(#gPot)" ${SW}/>`;
+    s+=tag(318,214,'햇볕 받기','#fff2c9',15)+tag(76,214,'호일로 가리기','#eef1f4',15);
+    return frame(s);
+  },
+  dropLeaves(){
+    let s=`<rect x="0" y="0" width="400" height="300" rx="18" fill="#fffaf0"/>`;
+    s+=`<ellipse cx="160" cy="214" rx="140" ry="54" fill="#eef6fb" ${SW}/><ellipse cx="160" cy="206" rx="124" ry="42" fill="#f9fcfe" stroke="#b8cad6" stroke-width="2"/>`;
+    s+=leaf(104,204,.95,90)+leaf(218,204,.95,90);
+    s+=T(104,262,18,'잎 ①')+T(218,262,18,'잎 ②');
+    s+=`<rect x="312" y="122" width="64" height="104" rx="12" fill="#8a4b22" ${SW}/><rect x="320" y="150" width="48" height="44" rx="6" fill="#fff" ${SW}/>`+T(344,170,13,'아이오딘')+T(344,186,13,'용액');
+    s+=dropper(344,20,C.iodine);
+    s+=dropper(104,40,C.iodine);
+    return frame(s);
+  },
+  leafOne(kind, p){
+    const isSun = kind==='sun';
+    let s=`<rect x="0" y="0" width="400" height="300" rx="18" fill="#fffaf0"/>`;
+    s+=`<rect x="14" y="40" width="150" height="190" rx="18" fill="url(#gSky)" stroke="#b8cad6" stroke-width="2"/>`;
+    if(isSun){ s+=sun(52,78,20)+leaf(104,160,1.1,30)+`<path d="M72 98 L94 124" stroke="#ffaa00" stroke-width="4" stroke-dasharray="3 8" stroke-linecap="round"/>`; }
+    else { s+=sun(52,78,20,false)+leaf(104,160,1.1,30)+foilBlob(104,160,46,48); }
+    s+=T(90,262,19,isSun?'① 포일 없음':'② 포일 씌움');
+    s+=arrow(176,136,222,136,'#5c705f',6)+T(200,112,15,'아이오딘');
+    const col = p>=2 ? (isSun?'#3a2f5b':'#ecd383') : '#cfe8b8';
+    s+=`<ellipse cx="310" cy="154" rx="82" ry="62" fill="#eef6fb" ${SW}/><ellipse cx="310" cy="148" rx="70" ry="50" fill="#f9fcfe" stroke="#b8cad6" stroke-width="2"/>`;
+    s+=leaf(310,150,1.05,90,col);
+    if(p<2) s+=T(310,162,40,'?','fill="#5c705f"');
+    if(p>=2) s+=tag(310,250,isSun?'청람색':'변화 없음',isSun?'#e6e7ff':'#fff2c9',17);
+    return frame(s);
+  },
+  twoLeaves(){
+    let s=`<rect x="0" y="0" width="400" height="300" rx="18" fill="#fffaf0"/>`;
+    const dish=(x,col,a,b)=>`<ellipse cx="${x}" cy="140" rx="86" ry="64" fill="#eef6fb" ${SW}/><ellipse cx="${x}" cy="134" rx="72" ry="52" fill="#f9fcfe" stroke="#b8cad6" stroke-width="2"/>`+leaf(x,136,1,90,col)+T(x,232,19,a)+tag(x,266,b,'#fff',16);
+    s+=dish(100,'#ecd383','② 포일 씌운 잎','녹말 없음')+dish(300,'#3a2f5b','① 햇볕 받은 잎','녹말 있음');
+    s+=T(100,30,15,'변화 없음','fill="#5c705f"')+T(300,30,15,'청람색','fill="#5c705f"');
+    return frame(s);
+  },
+  tubesResult(focus, p){
+    let s=`<rect x="0" y="0" width="400" height="300" rx="18" fill="#fffaf0"/>`;
+    const res=[C.yellow,C.blue,C.yellow], xs=[100,200,300];
+    xs.forEach((x,i)=>{
+      const known = focus===-1 || i<focus || (i===focus && p>=1);
+      s+=tube(x,62,{h:125,color:known?res[i]:C.none, q:!known, letter:'ABC'[i], elodea:i>0, foil:i===2?'half':false, bubbles:i===1&&known, focus:i===focus, dim:focus!==-1&&i>focus});
+    });
+    s+=`<rect x="44" y="84" width="312" height="20" rx="8" fill="url(#gWood)" ${SW}/>`;
+    const lab=['용액만','+검정말','+검정말+호일'];
+    xs.forEach((x,i)=>s+=T(x,244,16,lab[i]));
+    xs.forEach((x,i)=>{ const known = focus===-1 || i<focus || (i===focus && p>=1); if(known) s+=tag(x,282,i===1?'파란색':'노란색',i===1?'#d8eeff':'#fff2c9',16); });
+    return frame(s);
+  }
+};
+
+/* ============ 학습지 내용 ============ */
+const SECS = [
+  {name:'숨쉬기', page:1}, {name:'광합성', page:1}, {name:'실험1', page:2}, {name:'실험1 결과', page:5},
+  {name:'실험2', page:3}, {name:'실험2 결과', page:4}, {name:'정리', page:5}
+];
+const F = (text, opts, h) => ({t:'fill', text, opts, h});
+const P = (q, opts, a, h) => ({t:'pick', q, opts, a, h});
+const INFO = text => ({t:'info', text});
+const SEE = '그림을 보고 골라요';
+
+const SCREENS = [
+  {sec:0, title:'사람의 숨쉬기', art:ART.breath, win:'사람은 산소를 마셔요!',
+   items:[F('사람은 숨을 쉴 때 {산소}를 마셔요.',['산소','이산화탄소'],'파란 화살표 글씨를 보세요')]},
+  {sec:0, title:'식물의 숨쉬기', art:p=>ART.plant(p,false), win:'식물은 사람과 반대예요!',
+   items:[F('식물은 {이산화탄소}를 마셔요.',['산소','이산화탄소'],'잎으로 들어가는 회색 구름을 보세요')]},
+  {sec:1, title:'광합성', art:p=>ART.plant(p,false), win:'식물이 햇빛으로 밥을 만들어요!',
+   items:[F('식물이 햇빛으로 양분을 만드는 것을 {광합성}이라고 해요.',['광합성','소화'],'잎과 해 그림을 찾아요')]},
+  {sec:2, title:'BTB용액 색깔', art:ART.beaker, win:'숨을 불면 노란색이 돼요!',
+   items:[F('BTB용액은 {파란색}이에요.',['파란색','노란색'],SEE),
+          F('숨을 불어 넣으면 {노란색}이 돼요.',['파란색','노란색'],SEE)]},
+  {sec:2, title:'시험관 A, B, C', art:()=>ART.tubesSetup(9), win:'준비 끝! 그림을 보고 다음으로 가요.',
+   items:[INFO('A : 그대로 두어요.'),INFO('B : 검정말을 넣어요.'),INFO('C : 검정말을 넣고 호일로 감싸요.')]},
+  {sec:3, title:'시험관 색깔 보기', art:p=>ART.tubesResult(p,0), win:'B만 파란색이 되었어요!',
+   items:[P('A는 무슨 색?',['노란색','파란색'],'노란색','학습지 5쪽 표를 보세요'),
+          P('B는 무슨 색?',['노란색','파란색'],'파란색','검정말이 있는 시험관이에요'),
+          P('C는 무슨 색?',['노란색','파란색'],'노란색','호일로 빛을 가렸어요')]},
+  {sec:3, title:'B는 왜 파란색?', art:p=>ART.tubesResult(-1,1), win:'검정말이 광합성을 했어요!',
+   items:[F('검정말이 빛을 받아 {광합성}을 했어요.',['광합성','소화'])]},
+  {sec:4, title:'녹말 찾기 신호', art:ART.foods, win:'청람색이면 녹말이 있어요!',
+   items:[F('녹말에 아이오딘 용액을 떨어뜨리면 {청람색}이 돼요.',['청람색','노란색'],'아주 진한 파란색이에요')]},
+  {sec:4, title:'잎 두 장 준비', art:ART.pot, win:'잎 ②는 호일로 가렸어요!',
+   items:[F('잎 ②는 호일로 감싸서 햇볕을 {받지 않게} 해요.',['받게','받지 않게'],'은색 호일을 보세요')]},
+  {sec:5, title:'햇볕 받은 잎 ①', art:p=>ART.leafOne('sun',p>=1?2:0), win:'햇볕 받은 잎에는 녹말이 있어요!',
+   items:[P('색깔은?',['청람색','변화 없다'],'청람색','학습지 4쪽 표를 보세요'),
+          P('녹말이 있나요?',['있다','없다'],'있다','청람색이면 녹말이 있어요')]},
+  {sec:5, title:'호일 씌운 잎 ②', art:p=>ART.leafOne('foil',p>=1?2:0), win:'빛을 못 받으면 녹말이 없어요.',
+   items:[P('색깔은?',['청람색','변화 없다'],'변화 없다','학습지 4쪽 표를 보세요'),
+          P('녹말이 있나요?',['있다','없다'],'없다','색이 변하지 않았어요')]},
+  {sec:6, title:'오늘 알게 된 것', art:ART.twoLeaves, win:'식물은 빛이 있어야 광합성을 해요!',
+   items:[F('식물은 {빛}이 있어야 양분을 만들어요.',['빛','어둠'],'해 그림을 골라요'),
+          F('이것을 {광합성}이라고 해요.',['광합성','소화'])]}
+];
+
+// 단계 펼치기
+SCREENS.forEach(sc=>{
+  sc.steps=[];
+  sc.items.forEach((it,ii)=>{
+    it.start=sc.steps.length;
+    if(it.t==='fill'){
+      it.parts=it.text.split(/(\{[^}]+\})/).filter(Boolean).map(s=>s[0]==='{'?{a:s.slice(1,-1)}:s);
+      it.parts.filter(x=>typeof x==='object').forEach(b=>sc.steps.push({ii,a:b.a,opts:it.opts,h:it.h,kind:'fill'}));
+    } else if(it.t==='pick') sc.steps.push({ii,a:it.a,opts:it.opts,h:it.h,kind:'pick'});
+    else if(it.t==='tap') sc.steps.push({ii,kind:'tap'});
+  });
+});
+
+/* ============ 상태 ============ */
+const KEY='saessak-photosynthesis-easy-v1';
+let st = {name:'', cur:-1, prog:{}, fav:null, think:''};
+try{ const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s&&typeof s==='object') st=Object.assign(st,s); }catch(e){}
+const save=()=>{ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} };
+
+const ORDERS={};
+let miss=0, nope=new Set(), order=null, orderKey='', msg=null, popKey='', tapped=new Set(), resetArm=false;
+const PRAISE=['딩동댕! 맞았어요!','최고예요!','잘했어요!','정답이에요!','멋진 과학자!'];
+const app=document.getElementById('app');
+const prog = i => st.prog[i]||0;
+const done = i => prog(i) >= SCREENS[i].steps.length;
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+function go(i){ st.cur=i; miss=0; nope=new Set(); msg=null; tapped=new Set(); order=null; save(); render(); const m=document.querySelector('.main'); if(m) m.scrollTop=0; }
+
+function leafDots(){
+  const cur = SCREENS[st.cur]?.sec ?? -1;
+  return SECS.map((s,i)=>{
+    const all = SCREENS.map((sc,k)=>[sc,k]).filter(([sc])=>sc.sec===i).every(([,k])=>done(k));
+    const fill = all ? '#3c9d58' : i===cur ? '#ffc83d' : '#ffffff';
+    return `<svg class="leafdot" viewBox="0 0 40 40" aria-label="${s.name}${all?' 완료':''}"><path d="M20 3 C33 9 36 26 20 37 C4 26 7 9 20 3Z" fill="${fill}"/>${all?'<path d="M13 21 l5 5 l9 -11" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>':''}</svg>`;
+  }).join('');
+}
+
+/* ============ 화면 그리기 ============ */
+function render(){
+  if(st.cur<0) return renderStart();
+  if(st.cur===SCREENS.length) return renderThink();
+  if(st.cur>SCREENS.length) return renderFinal();
+  const i=st.cur, sc=SCREENS[i], p=prog(i), sec=SECS[sc.sec], step=sc.steps[p], complete=!step;
+  if(step && (step.kind==='fill'||step.kind==='pick')){ const k=i+'-'+step.ii; if(!ORDERS[k]) ORDERS[k]=shuffle(step.opts); order=ORDERS[k]; }
+
+  // 말풍선
+  let bub, cls='', mood='happy';
+  if(msg){ bub=msg.text+(msg.hint?`<span class="hint">${msg.hint}</span>`:''); cls=msg.type; if(msg.type==='oops') mood='oops'; }
+  else if(complete){ bub=sc.win; cls='good'; }
+  else if(step.kind==='tap') bub='노란 카드를 모두 눌러 보세요!';
+  else if(step.kind==='pick') bub='아래에서 맞는 것을 골라요!<span class="hint">학습지에 O표 한 것과 똑같이!</span>';
+  else bub='빈칸에 들어갈 말을 아래에서 골라요!';
+  if(complete && msg && msg.type==='good') { bub = msg.text+`<span class="hint">${sc.win}</span>`; }
+
+  // 문장들
+  const items = sc.items.map((it,ii)=>{
+    const last = it.t==='fill' ? it.start + it.parts.filter(x=>typeof x==='object').length - 1 : it.start;
+    const state = it.t==='info' ? (complete?'':'later') : (p>=it.start && p<=last && !complete ? 'now' : p<it.start ? 'later' : '');
+    if(it.t==='info') return `<div class="item info ${state}">${it.text}</div>`;
+    if(it.t==='fill'){
+      let k=it.start;
+      const html = it.parts.map(x=>{
+        if(typeof x==='string') return x;
+        const idx=k++;
+        if(idx<p) return `<span class="blank done ${popKey===i+'-'+idx?'pop':''}">${x.a}</span>`;
+        if(idx===p) return `<span class="blank now">?</span>`;
+        return `<span class="blank">&nbsp;</span>`;
+      }).join('');
+      return `<div class="item ${state}"><p class="sent">${html}</p></div>`;
+    }
+    if(it.t==='pick'){
+      const idx=it.start;
+      const b = idx<p ? `<span class="blank done ${popKey===i+'-'+idx?'pop':''}">${it.a}</span>` : idx===p ? `<span class="blank now">?</span>` : `<span class="blank">&nbsp;</span>`;
+      return `<div class="item ${state}"><div class="pick"><span>${it.q}</span>${b}</div></div>`;
+    }
+    if(it.t==='tap'){
+      const finished = p>it.start;
+      return `<div class="item ${state}"><p class="sent" style="margin-bottom:8px">이산화탄소는 언제 발생할까요?</p><div class="taps">${it.cards.map((c,ci)=>{
+        const seen = finished || tapped.has(ci);
+        return `<button class="tapc ${seen?'seen':''}" data-tap="${ci}" id="tap-${i}-${ci}">${icon(c[0])}<span>${c[1]}</span>${seen?'':'<span class="cover">?</span>'}</button>`;}).join('')}</div></div>`;
+    }
+  }).join('');
+
+  // 아래 칸
+  let dock;
+  if(complete){
+    dock = `<button class="next" id="next">${i===SCREENS.length-1?'내 생각 쓰러 가기 ▶':'다음으로 ▶'}</button>`;
+  } else if(step.kind==='tap'){
+    dock = `<div class="dock-label">카드를 눌러서 확인해요 (${tapped.size} / 3)</div>`;
+  } else {
+    const remaining = order.filter(o=>!nope.has(o));
+    const glow = miss>=2 || remaining.length===1;
+    dock = `<div class="dock-label">${step.kind==='pick'?'맞는 것을 눌러요':'빈칸에 들어갈 말을 눌러요'}</div><div class="opts">${order.map((o,oi)=>
+      `<button style="${OPTBG[o]?`background:${OPTBG[o]}`:''}" class="opt ${nope.has(o)?'nope':''} ${glow&&o===step.a?'glow':''}" data-opt="${oi}" id="opt-${i}-${p}-${oi}">${icon(o)}<span>${o}</span></button>`).join('')}</div>`;
+  }
+
+  app.innerHTML = `
+  <header class="top">
+    <button class="back" id="back" aria-label="이전 화면">◀</button>
+    <div class="leaves">${leafDots()}</div>
+    <div class="page">학습지 ${sec.page}쪽</div>
+  </header>
+  <main class="main"><div class="wrap">
+    <div class="art">${sc.art(p)}</div>
+    <div class="work">
+      <div class="coach">${mascot(mood)}<div class="bubble ${cls}">${bub}</div></div>
+      <div><div class="sec">${sec.name}</div><h2>${sc.title}</h2></div>
+      <div class="items">${items}</div>
+    </div>
+  </div></main>
+  <footer class="dock"><div class="dock-in">${dock}</div></footer>`;
+  popKey='';
+
+  document.getElementById('back').onclick=()=>go(st.cur-1);
+  const nx=document.getElementById('next'); if(nx) nx.onclick=()=>go(st.cur+1);
+  app.querySelectorAll('[data-opt]').forEach(b=>b.onclick=()=>choose(order[+b.dataset.opt], b));
+  app.querySelectorAll('[data-tap]').forEach(b=>b.onclick=()=>{
+    if(!step || step.kind!=='tap') return;
+    tapped.add(+b.dataset.tap);
+    if(tapped.size>=3 && !done(i)){ st.prog[i]=prog(i)+1; msg={type:'good',text:'모두 찾았어요!'}; save(); }
+    render();
+  });
+}
+
+function choose(o, btn){
+  const i=st.cur, sc=SCREENS[i], p=prog(i), step=sc.steps[p];
+  if(o===step.a){
+    st.prog[i]=p+1; popKey=i+'-'+p; miss=0; nope=new Set();
+    msg={type:'good', text:PRAISE[Math.floor(Math.random()*PRAISE.length)]};
+    save(); render();
+  } else {
+    miss++; nope.add(o);
+    const hint = miss>=2 ? '반짝이는 카드를 눌러 보세요!' : (step.h || `학습지 ${SECS[sc.sec].page}쪽을 보고 골라요`);
+    msg={type:'oops', text:'다시 골라 볼까요?', hint};
+    btn.classList.add('shake');
+    setTimeout(render, 380);
+  }
+}
+
+/* ============ 시작 화면 ============ */
+function renderStart(){
+  const started = Object.keys(st.prog).length>0;
+  app.innerHTML = `<main class="main"><div class="start">
+    <div class="hero">${mascot()}</div>
+    <div>
+      <div class="kicker">원예 · 과학 융합수업 · 쉬운 단계</div>
+      <h1>새싹 박사의<br><em>광합성</em> 탐구</h1>
+      <p>학습지를 다 채웠나요? 학습지를 보면서 빈칸을 하나씩 채워요.</p>
+      <div class="namebox"><label for="nm">내 이름</label><input id="nm" autocomplete="off" maxlength="12" placeholder="이름을 써요" value="${(st.name||'').replace(/"/g,'&quot;')}"></div>
+      <div class="plan">
+        <div><b>실험 1</b>식물은 무엇을 먹을까? (검정말)</div>
+        <div><b>실험 2</b>잎에서 만든 양분 찾기 (녹말)</div>
+      </div>
+      <div class="row">
+        <button class="next" id="go">${started?'이어서 하기 ▶':'시작하기 ▶'}</button>
+        ${started?`<button class="ghost ${resetArm?'warn':''}" id="reset">${resetArm?'한 번 더 누르면 지워져요':'처음부터 다시'}</button>`:''}
+      </div>
+    </div></div></main>`;
+  const nm=document.getElementById('nm');
+  nm.oninput=()=>{ st.name=nm.value.trim(); save(); };
+  document.getElementById('go').onclick=()=>{
+    st.name=nm.value.trim();
+    let first=SCREENS.findIndex((s,k)=>!done(k)); if(first<0) first=(st.think||'').trim()?SCREENS.length+1:SCREENS.length;
+    go(started?first:0);
+  };
+  const r=document.getElementById('reset');
+  if(r) r.onclick=()=>{ if(!resetArm){ resetArm=true; renderStart(); setTimeout(()=>{resetArm=false; if(st.cur<0) renderStart();},3000); return; }
+    resetArm=false; st={name:'',cur:-1,prog:{},fav:null,think:''}; save(); renderStart(); };
+}
+
+/* ============ 내 생각 쓰기 ============ */
+const FAVS=[['파란색','BTB 색깔 바뀌기'],['검정말을 넣는다','검정말 실험'],['청람색','녹말 찾기 (청람색)']];
+const STARTERS=['BTB용액 색이 바뀌어서 신기했어요.','잎이 청람색이 되어서 놀랐어요.','식물은 햇빛이 필요해요.','실험이 재미있었어요.','집에서도 식물을 키우고 싶어요.']
+const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function topBar(label){ return `<header class="top"><button class="back" id="back" aria-label="이전 화면">◀</button><div class="leaves">${leafDots()}</div><div class="page">${label}</div></header>`; }
+
+function renderThink(){
+  const ok=(st.think||'').trim().length>0;
+  app.innerHTML = topBar('내 생각') + `
+  <main class="main"><div class="think">
+    <div class="coach">${mascot()}<div class="bubble">실험을 하고 나서 어떤 생각이 들었나요?<span class="hint">노란 문장 카드를 눌러도 되고, 직접 써도 돼요.</span></div></div>
+    <div><div class="sec">마무리</div><h2>실험하고 나서 내 생각</h2></div>
+    <div class="panel"><h3>가장 재미있었던 실험을 눌러요</h3>
+      <div class="chips">${FAVS.map((f,k)=>`<button class="chip ${st.fav===k?'on':''}" data-fav="${k}" id="fav-${k}">${icon(f[0])}${f[1]}</button>`).join('')}</div></div>
+    <div class="panel"><h3>내 생각 쓰기</h3>
+      <textarea id="think" maxlength="300" placeholder="여기에 내 생각을 써요">${esc(st.think||'')}</textarea>
+      <span class="sub">문장 카드를 누르면 위 칸에 들어가요</span>
+      <div class="starters">${STARTERS.map((t,k)=>`<button class="starter" data-st="${k}" id="st-${k}">${t}</button>`).join('')}</div>
+    </div>
+  </div></main>
+  <footer class="dock"><div class="dock-in"><button class="next" id="next" ${ok?'':'disabled'}>결과 카드 만들기 ★</button></div></footer>`;
+  const ta=document.getElementById('think'), nx=document.getElementById('next');
+  const sync=()=>{ st.think=ta.value; save(); nx.disabled=!ta.value.trim(); };
+  ta.oninput=sync;
+  document.getElementById('back').onclick=()=>go(SCREENS.length-1);
+  nx.onclick=()=>{ if(ta.value.trim()) go(SCREENS.length+1); };
+  app.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>{ st.fav=+b.dataset.fav; save();
+    app.querySelectorAll('[data-fav]').forEach(x=>x.classList.toggle('on', +x.dataset.fav===st.fav)); });
+  app.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{
+    const t=STARTERS[+b.dataset.st]; if(ta.value.includes(t)) return;
+    ta.value = (ta.value.trim()? ta.value.replace(/\s+$/,'')+' ' : '') + t; sync();
+  });
+}
+
+/* ============ 결과 카드 ============ */
+function renderFinal(){
+  const d=new Date(); const date=`${d.getMonth()+1}월 ${d.getDate()}일`;
+  app.innerHTML = topBar('완성!') + `
+  <main class="main"><div class="final">
+    <div class="stamp">광합성<br>박사<br>인증</div>
+    <div class="final-head">${mascot()}<div><h1>나의 광합성 탐구 결과</h1><div class="who">${esc(st.name||'꼬마 과학자')} · ${date}</div></div></div>
+    <div class="res">
+      <section><h3>실험 1 · 식물은 무엇을 먹을까?</h3>${ART.tubesResult(-1,1)}
+        <ul><li>A 그대로 → 노란색</li><li>B 검정말 → 파란색 (광합성!)</li><li>C 검정말+호일 → 노란색</li></ul></section>
+      <section><h3>실험 2 · 잎에서 만든 양분 찾기</h3>${ART.twoLeaves()}
+        <ul><li>① 햇볕 받은 잎 → 청람색 → 녹말 있음</li><li>② 포일 씌운 잎 → 변화 없음 → 녹말 없음</li></ul></section>
+    </div>
+    <div class="learn"><h3>알게 된 것</h3>
+      <p>식물은 <mark>광합성</mark>을 통해 스스로 <mark>녹말</mark>(양분)을 만들어 낸다.</p>
+      <p>광합성 과정에는 <mark>빛</mark>과 <mark>이산화탄소</mark>가 필요하다.</p></div>
+    <div class="mine"><h3>실험하고 나서 내 생각</h3>
+      ${st.fav!=null?`<p style="margin-bottom:6px">가장 재미있었던 실험: <b>${FAVS[st.fav][1]}</b></p>`:''}
+      <p>${esc(st.think||'')}</p></div>
+    <div class="saves">
+      <button class="save" id="savePng">사진으로 저장 (PNG)</button>
+      <button class="save jpg" id="saveJpg">사진으로 저장 (JPG)</button>
+      <button class="ghost" id="edit">내 생각 고치기</button>
+    </div>
+    <div class="shot"><b>다 했어요!</b> 저장한 사진을 패들렛에 올려요.</div>
+  </div></main>`;
+  document.getElementById('back').onclick=()=>go(SCREENS.length);
+  document.getElementById('edit').onclick=()=>go(SCREENS.length);
+  document.getElementById('savePng').onclick=e=>saveImage('png',e.currentTarget);
+  document.getElementById('saveJpg').onclick=e=>saveImage('jpg',e.currentTarget);
+}
+
+/* ============ 사진(PNG/JPG)으로 저장 ============ */
+const DEFS = () => document.querySelector('svg defs').outerHTML;
+function svgImage(svgStr, w, h){
+  const full = svgStr.replace('<svg ', `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" `).replace(/(<svg[^>]*>)/, `$1${DEFS()}`);
+  return new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(full); });
+}
+function rr(x,X,Y,W,H,R){ x.beginPath(); x.moveTo(X+R,Y); x.arcTo(X+W,Y,X+W,Y+H,R); x.arcTo(X+W,Y+H,X,Y+H,R); x.arcTo(X,Y+H,X,Y,R); x.arcTo(X,Y,X+W,Y,R); x.closePath(); }
+function wrapText(x, text, maxW){
+  const out=[]; String(text).split('\n').forEach(par=>{
+    let line=''; for(const ch of par){ if(x.measureText(line+ch).width>maxW && line){ out.push(line); line=ch.trim()?ch:''; } else line+=ch; }
+    out.push(line);
+  }); return out;
+}
+const FD='"Jua","Nanum Gothic",sans-serif', FB='"Nanum Gothic","Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+async function buildCanvas(){
+  try{ await document.fonts.ready; await Promise.all([document.fonts.load(`40px Jua`),document.fonts.load(`800 30px "Nanum Gothic"`)]); }catch(e){}
+  const W=1200, M=40, IN=M+36;
+  const c=document.createElement('canvas'), x=c.getContext('2d');
+  x.font=`700 28px ${FB}`;
+  const lines = wrapText(x, (st.think||'').trim(), W-2*IN-40);
+  const favH = st.fav!=null ? 46 : 0;
+  const by=M+204, bh=560, ly=by+bh+24, lh=172, ty=ly+lh+24;
+  const H = ty + 92 + favH + Math.max(2,lines.length)*46 + 6 + M + 30;
+  c.width=W; c.height=H;
+  // 바탕 (모눈종이)
+  x.fillStyle='#f2f7ea'; x.fillRect(0,0,W,H);
+  x.strokeStyle='#e0ead2'; x.lineWidth=1;
+  for(let i=0;i<W;i+=28){x.beginPath();x.moveTo(i+.5,0);x.lineTo(i+.5,H);x.stroke();}
+  for(let j=0;j<H;j+=28){x.beginPath();x.moveTo(0,j+.5);x.lineTo(W,j+.5);x.stroke();}
+  // 카드
+  rr(x,M,M,W-2*M,H-2*M-30,34); x.fillStyle='#fffdf6'; x.fill(); x.lineWidth=5; x.strokeStyle='#24382a'; x.stroke();
+  const ink='#24382a';
+  // 머리
+  const [mImg, tImg, lImg] = await Promise.all([ svgImage(mascot(),104,130), svgImage(ART.tubesResult(-1,1),480,360), svgImage(ART.twoLeaves(),480,360) ]);
+  x.drawImage(mImg, IN, M+26, 104, 130);
+  x.fillStyle=ink; x.textBaseline='alphabetic'; x.textAlign='left';
+  x.font=`56px ${FD}`; x.fillText('나의 광합성 탐구 결과', IN+128, M+96);
+  const d=new Date();
+  x.font=`700 28px ${FB}`; x.fillStyle='#5c705f'; x.fillText(`${st.name||'꼬마 과학자'} · ${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 · 식물의 광합성`, IN+130, M+142);
+  // 도장
+  x.save(); x.translate(W-M-110, M+96); x.rotate(-0.21);
+  x.strokeStyle='#ff7b54'; x.lineWidth=5; x.beginPath(); x.arc(0,0,66,0,Math.PI*2); x.stroke(); x.lineWidth=2; x.beginPath(); x.arc(0,0,57,0,Math.PI*2); x.stroke();
+  x.fillStyle='#ff7b54'; x.textAlign='center'; x.font=`26px ${FD}`; x.fillText('광합성',0,-14); x.fillText('박사',0,16); x.fillText('인증',0,46); x.restore();
+  // 점선
+  x.setLineDash([10,8]); x.strokeStyle='#d5e1c8'; x.lineWidth=3; x.beginPath(); x.moveTo(IN,M+178); x.lineTo(W-IN,M+178); x.stroke(); x.setLineDash([]);
+  // 실험 상자 두 개
+  const bw=(W-2*IN-24)/2;
+  const box=(bx,title,img,items)=>{
+    rr(x,bx,by,bw,bh,24); x.fillStyle='#ffffff'; x.fill(); x.lineWidth=3; x.strokeStyle='#d5e1c8'; x.stroke();
+    x.fillStyle=ink; x.textAlign='left'; x.font=`32px ${FD}`; x.fillText(title,bx+20,by+48);
+    const iw=bw-40, ih=iw*0.75; x.drawImage(img,bx+20,by+66,iw,ih);
+    x.font=`700 22px ${FB}`; items.forEach((t,k)=>{ x.fillStyle='#3c9d58'; x.beginPath(); x.arc(bx+28,by+66+ih+34+k*36-7,5,0,7); x.fill(); x.fillStyle=ink; x.fillText(t,bx+42,by+66+ih+34+k*36); });
+  };
+  box(IN,'실험 1 · 식물은 무엇을 먹을까?',tImg,['A 그대로 → 노란색','B 검정말 → 파란색 (광합성!)','C 검정말+호일 → 노란색']);
+  box(IN+bw+24,'실험 2 · 잎에서 만든 양분 찾기',lImg,['① 햇볕 받은 잎 → 청람색 → 녹말 있음','② 포일 씌운 잎 → 변화 없음 → 녹말 없음']);
+  // 알게 된 것
+  rr(x,IN,ly,W-2*IN,lh,24); x.fillStyle='#fff2c9'; x.fill(); x.lineWidth=3; x.strokeStyle='#ffc83d'; x.stroke();
+  x.fillStyle=ink; x.font=`32px ${FD}`; x.fillText('알게 된 것',IN+22,ly+48);
+  const rich=(parts,X,Y)=>{ let cx=X; parts.forEach(([t,hl])=>{ x.font= hl?`30px ${FD}`:`800 28px ${FB}`; const w=x.measureText(t).width;
+      if(hl){ rr(x,cx-2,Y-30,w+16,42,10); x.fillStyle='#fff'; x.fill(); x.lineWidth=2.5; x.strokeStyle='#3c9d58'; x.stroke(); x.fillStyle='#2a7a42'; x.fillText(t,cx+6,Y); cx+=w+20; }
+      else { x.fillStyle=ink; x.fillText(t,cx,Y); cx+=w; } }); };
+  rich([['식물은 ',0],['광합성',1],['을 통해 스스로 ',0],['녹말',1],['(양분)을 만들어 낸다.',0]], IN+22, ly+100);
+  rich([['광합성 과정에는 ',0],['빛',1],['과 ',0],['이산화탄소',1],['가 필요하다.',0]], IN+22, ly+148);
+  // 내 생각
+  const th=H-M-30-24-ty;
+  rr(x,IN,ty,W-2*IN,th,24); x.fillStyle='#ffffff'; x.fill(); x.lineWidth=3; x.strokeStyle='#d5e1c8'; x.stroke();
+  x.fillStyle=ink; x.font=`32px ${FD}`; x.fillText('실험하고 나서 내 생각',IN+22,ty+48);
+  let yy=ty+96;
+  if(st.fav!=null){ x.font=`700 26px ${FB}`; x.fillStyle='#5c705f'; x.fillText('가장 재미있었던 실험: ',IN+22,yy); const w=x.measureText('가장 재미있었던 실험: ').width; x.font=`28px ${FD}`; x.fillStyle='#2a7a42'; x.fillText(FAVS[st.fav][1],IN+22+w,yy); yy+=favH; }
+  x.font=`700 28px ${FB}`; x.fillStyle=ink;
+  const nl=Math.max(2,lines.length);
+  for(let k=0;k<nl;k++){ x.strokeStyle='#e3ead9'; x.lineWidth=2; x.beginPath(); x.moveTo(IN+22,yy+12); x.lineTo(W-IN-22,yy+12); x.stroke(); if(lines[k]) x.fillText(lines[k],IN+22,yy); yy+=46; }
+  // 바닥 글
+  x.textAlign='center'; x.font=`22px ${FD}`; x.fillStyle='#5c705f'; x.fillText('원예 · 과학 융합수업 · 새싹 박사의 광합성 탐구', W/2, H-24);
+  return c;
+}
+async function saveImage(kind, btn){
+  const label=btn.textContent; btn.disabled=true; btn.textContent='사진 만드는 중…';
+  try{
+    const c=await buildCanvas();
+    const url=c.toDataURL(kind==='jpg'?'image/jpeg':'image/png', .93);
+    const fname=`광합성탐구결과_${(st.name||'꼬마과학자').replace(/[\\/:*?"<>|\s]/g,'')}.${kind}`;
+    const ov=document.createElement('div'); ov.className='overlay';
+    ov.innerHTML=`<div class="sheet" role="dialog" aria-label="탐구 결과 사진"><h3>탐구 결과 사진이 만들어졌어요!</h3>
+      <div class="imgbox"><img alt="나의 광합성 탐구 결과 사진" src="${url}"></div>
+      <div class="row"><a class="save ${kind==='jpg'?'jpg':''}" id="dl" href="${url}" download="${fname}">${kind.toUpperCase()} 파일 저장하기</a><button class="ghost" id="closeOv">닫기</button></div>
+      <p>저장이 안 되면 위 사진을 손가락으로 길게 누르고 '사진에 저장' 또는 '이미지 저장'을 눌러요.</p></div>`;
+    document.body.appendChild(ov);
+    const close=()=>ov.remove();
+    ov.querySelector('#closeOv').onclick=close; ov.onclick=e=>{ if(e.target===ov) close(); };
+  }catch(e){
+    console.error(e); btn.textContent='다시 눌러 주세요'; setTimeout(()=>btn.textContent=label,1500); return;
+  } finally { btn.disabled=false; btn.textContent=label; }
+}
+
+if(st.cur>SCREENS.length+1) st.cur=-1;
+render();
+})();
+</script>
+</body></html>
